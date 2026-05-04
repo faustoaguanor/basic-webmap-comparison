@@ -12,7 +12,7 @@ El objetivo es demostrar las diferencias de arquitectura, renderizado y capacida
 
 El sitio está desplegado en GitHub Pages:
 
-> **[https://faustoagunor.github.io/quito-gis/](https://faustoaguanor.github.io/quito-gis/)**
+> **[https://faustoagunor.github.io/basic-webmap-comparison](https://faustoaguanor.github.io/basic-webmap-comparison/)**
 
 ## Estructura del repositorio
 
@@ -154,11 +154,11 @@ quito-gis/
 1. Clona el repositorio:
 
 ```bash
-git clone https://github.com/tu-usuario/quito-gis.git
+git clone https://github.com/faustoaguanor/basic-webmap-comparison.git
 cd quito-gis
 ```
 
-2. Abre `index.html` en un navegador:
+1. Abre `index.html` en un navegador:
 
 ```bash
 # Con Python
@@ -170,7 +170,7 @@ npx serve .
 # O simplemente abre index.html directamente en el navegador
 ```
 
-3. Navega entre los tres ejemplos desde la página principal.
+1. Navega entre los tres ejemplos desde la página principal.
 
 > **Nota:** Los mapas cargan tiles desde CDN, por lo que se requiere conexión a internet.
 
@@ -229,7 +229,7 @@ Las coordenadas de los 12 puntos turísticos son aproximadas y referenciales:
 | Font Awesome 6.5.1 | Fonticons, Inc.      | Font Awesome Free (CC BY 4.0 + SIL OFL) |
 | Inter              | Rasmus Andersson     | SIL Open Font License 1.1               |
 | Playfair Display   | Claus Eggers Sørenen | SIL Open Font License 1.1               |
-| JetBrains Mono     | JetBrains            | SIL Open Font License 1.1              
+| JetBrains Mono     | JetBrains            | SIL Open Font License 1.1 |
 
 Los mapas utilizan tiles de CARTO y OpenStreetMap, que requieren la siguiente atribución:
 
