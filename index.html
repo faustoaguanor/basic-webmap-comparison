@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="es-EC" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Comparativa de bibliotecas GIS web: Leaflet, MapLibre GL y OpenLayers. Mapas interactivos de Quito, Ecuador.">
+<title>Quito GIS | Comparativa de Bibliotecas GIS Web</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg-1: #080c14;
+--bg-2: #0a1628;
+--panel: rgba(10, 16, 30, 0.78);
+--panel-solid: #0e1525;
+--panel-border: rgba(255, 255, 255, 0.06);
+--panel-hover: rgba(255, 255, 255, 0.08);
+--text-1: #f0f4f8;
+--text-2: #8899aa;
+--text-3: #556677;
+--accent: #6c5ce7;
+--accent-glow: rgba(108, 92, 231, 0.4);
+--accent-2: #00cec9;
+--accent-2-glow: rgba(0, 206, 201, 0.35);
+--accent-3: #fd79a8;
+--danger: #ff6b6b;
+--warning: #feca57;
+--success: #00b894;
+--shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+--shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3);
+--radius: 20px;
+--radius-sm: 12px;
+--radius-xs: 8px;
+--transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+--transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+--bg-1: #f0f3f8;
+--bg-2: #dfe6f0;
+--panel: rgba(255, 255, 255, 0.82);
+--panel-solid: #ffffff;
+--panel-border: rgba(0, 20, 60, 0.07);
+--panel-hover: rgba(0, 20, 60, 0.05);
+--text-1: #1a2035;
+--text-2: #5a6a7a;
+--text-3: #8a96a6;
+--accent: #5a4cd1;
+--accent-glow: rgba(90, 76, 209, 0.3);
+--accent-2: #00a89d;
+--accent-2-glow: rgba(0, 168, 157, 0.25);
+--accent-3: #e84393;
+--shadow: 0 24px 80px rgba(0, 20, 60, 0.12);
+--shadow-sm: 0 4px 16px rgba(0, 20, 60, 0.08);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+font-family: "Inter", system-ui, -apple-system, sans-serif;
+color: var(--text-1);
+background: var(--bg-1);
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+@keyframes gradientShift {
+0%, 100% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+}
+
+@keyframes fadeInUp {
+from { opacity: 0; transform: translateY(30px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+from { opacity: 0; }
+to { opacity: 1; }
+}
+
+@keyframes float {
+0%, 100% { transform: translateY(0px); }
+50% { transform: translateY(-10px); }
+}
+
+@keyframes pulseGlow {
+0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px var(--accent-2-glow); }
+}
+
+.bg-glow {
+position: fixed;
+top: -50%;
+left: -50%;
+width: 200%;
+height: 200%;
+background: radial-gradient(ellipse at 20% 20%, var(--accent-glow), transparent 40%),
+radial-gradient(ellipse at 80% 80%, var(--accent-2-glow), transparent 40%);
+animation: gradientShift 20s ease infinite;
+background-size: 200% 200%;
+pointer-events: none;
+z-index: 0;
+}
+
+.container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 0 24px;
+position: relative;
+z-index: 1;
+}
+
+nav {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+z-index: 100;
+background: var(--panel);
+backdrop-filter: blur(24px) saturate(1.4);
+-webkit-backdrop-filter: blur(24px) saturate(1.4);
+border-bottom: 1px solid var(--panel-border);
+padding: 16px 24px;
+}
+
+nav .nav-inner {
+max-width: 1200px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+
+nav .brand {
+display: flex;
+align-items: center;
+gap: 12px;
+text-decoration: none;
+color: var(--text-1);
+}
+
+nav .brand-icon {
+width: 38px;
+height: 38px;
+border-radius: var(--radius-xs);
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+color: #fff;
+box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+nav .brand h1 {
+font-family: "Playfair Display", serif;
+font-size: 20px;
+letter-spacing: -0.5px;
+}
+
+nav .nav-links {
+display: flex;
+gap: 8px;
+align-items: center;
+}
+
+nav .nav-links a {
+color: var(--text-2);
+text-decoration: none;
+font-size: 13px;
+font-weight: 600;
+padding: 8px 14px;
+border-radius: var(--radius-xs);
+transition: all var(--transition-fast);
+border: 1px solid transparent;
+}
+
+nav .nav-links a:hover {
+color: var(--accent);
+background: rgba(108, 92, 231, 0.08);
+border-color: var(--panel-border);
+}
+
+.theme-toggle {
+width: 38px;
+height: 38px;
+border: 1px solid var(--panel-border);
+background: var(--panel-hover);
+color: var(--text-2);
+border-radius: var(--radius-xs);
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 15px;
+transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+background: var(--accent);
+color: #fff;
+border-color: var(--accent);
+}
+
+.hero {
+padding: 140px 0 80px;
+text-align: center;
+}
+
+.hero-badge {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 8px 18px;
+border-radius: 999px;
+border: 1px solid var(--panel-border);
+background: var(--panel-hover);
+font-size: 12px;
+font-weight: 600;
+color: var(--accent);
+margin-bottom: 24px;
+animation: fadeIn 0.6s ease;
+}
+
+.hero-badge i { font-size: 14px; }
+
+.hero h2 {
+font-family: "Playfair Display", serif;
+font-size: clamp(36px, 6vw, 64px);
+line-height: 1.1;
+letter-spacing: -1px;
+margin-bottom: 20px;
+animation: fadeInUp 0.6s ease both;
+}
+
+.hero h2 .gradient-text {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+
+.hero p {
+font-size: 18px;
+color: var(--text-2);
+max-width: 640px;
+margin: 0 auto 40px;
+line-height: 1.7;
+animation: fadeInUp 0.6s 0.15s ease both;
+}
+
+.hero-stats {
+display: flex;
+justify-content: center;
+gap: 40px;
+margin-top: 48px;
+animation: fadeInUp 0.6s 0.3s ease both;
+}
+
+.hero-stat {
+text-align: center;
+}
+
+.hero-stat .stat-value {
+font-size: 32px;
+font-weight: 800;
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+}
+
+.hero-stat .stat-label {
+font-size: 12px;
+color: var(--text-3);
+text-transform: uppercase;
+letter-spacing: 2px;
+font-weight: 600;
+margin-top: 4px;
+}
+
+.section {
+padding: 80px 0;
+}
+
+.section-label {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+font-size: 11px;
+text-transform: uppercase;
+letter-spacing: 3px;
+color: var(--accent);
+font-weight: 700;
+margin-bottom: 16px;
+}
+
+.section-label i { font-size: 12px; }
+
+.section-title {
+font-family: "Playfair Display", serif;
+font-size: clamp(28px, 4vw, 42px);
+line-height: 1.15;
+letter-spacing: -0.5px;
+margin-bottom: 16px;
+}
+
+.section-desc {
+font-size: 16px;
+color: var(--text-2);
+max-width: 560px;
+line-height: 1.7;
+margin-bottom: 48px;
+}
+
+.cards-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+gap: 24px;
+}
+
+.map-card {
+background: var(--panel);
+backdrop-filter: blur(24px) saturate(1.4);
+-webkit-backdrop-filter: blur(24px) saturate(1.4);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius);
+overflow: hidden;
+transition: all var(--transition);
+position: relative;
+}
+
+.map-card:hover {
+transform: translateY(-6px);
+box-shadow: var(--shadow);
+border-color: var(--accent);
+}
+
+.map-card-header {
+padding: 28px 28px 0;
+position: relative;
+}
+
+.map-card-icon {
+width: 56px;
+height: 56px;
+border-radius: var(--radius-sm);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 24px;
+color: #fff;
+margin-bottom: 20px;
+position: relative;
+}
+
+.map-card-icon.leaflet-icon {
+background: linear-gradient(135deg, #199900, #80d000);
+box-shadow: 0 8px 24px rgba(25, 153, 0, 0.3);
+}
+
+.map-card-icon.maplibre-icon {
+background: linear-gradient(135deg, #5a4cd1, #957fef);
+box-shadow: 0 8px 24px rgba(90, 76, 209, 0.3);
+}
+
+.map-card-icon.openlayers-icon {
+background: linear-gradient(135deg, #1a6faa, #57b4e0);
+box-shadow: 0 8px 24px rgba(26, 111, 170, 0.3);
+}
+
+.map-card h3 {
+font-size: 22px;
+font-weight: 700;
+margin-bottom: 6px;
+}
+
+.map-card .card-subtitle {
+font-size: 13px;
+color: var(--text-3);
+margin-bottom: 16px;
+font-weight: 500;
+}
+
+.map-card .card-desc {
+font-size: 14px;
+color: var(--text-2);
+line-height: 1.6;
+margin-bottom: 20px;
+}
+
+.map-card .card-link {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 10px 20px;
+border-radius: var(--radius-xs);
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+text-decoration: none;
+font-size: 13px;
+font-weight: 600;
+transition: all var(--transition);
+box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.map-card .card-link:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.map-card-body {
+padding: 24px 28px 28px;
+}
+
+.tech-tags {
+display: flex;
+flex-wrap: wrap;
+gap: 6px;
+margin-top: 20px;
+}
+
+.tech-tag {
+font-size: 11px;
+font-weight: 600;
+padding: 4px 10px;
+border-radius: 999px;
+border: 1px solid var(--panel-border);
+background: var(--panel-hover);
+color: var(--text-2);
+}
+
+.tech-tag.core {
+background: rgba(108, 92, 231, 0.12);
+color: var(--accent);
+border-color: rgba(108, 92, 231, 0.2);
+}
+
+.features-list {
+list-style: none;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-top: 20px;
+}
+
+.features-list li {
+font-size: 13px;
+color: var(--text-2);
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 6px 0;
+}
+
+.features-list li i {
+font-size: 10px;
+color: var(--accent-2);
+}
+
+.comparison-table {
+width: 100%;
+border-collapse: separate;
+border-spacing: 0;
+background: var(--panel);
+backdrop-filter: blur(24px);
+border-radius: var(--radius);
+overflow: hidden;
+border: 1px solid var(--panel-border);
+}
+
+.comparison-table thead {
+background: rgba(108, 92, 231, 0.08);
+}
+
+.comparison-table th {
+padding: 16px 20px;
+font-size: 12px;
+text-transform: uppercase;
+letter-spacing: 1.5px;
+color: var(--text-3);
+font-weight: 700;
+text-align: left;
+border-bottom: 1px solid var(--panel-border);
+}
+
+.comparison-table td {
+padding: 14px 20px;
+font-size: 14px;
+color: var(--text-2);
+border-bottom: 1px solid var(--panel-border);
+}
+
+.comparison-table tr:last-child td { border-bottom: none; }
+
+.comparison-table td:first-child {
+font-weight: 600;
+color: var(--text-1);
+}
+
+.comparison-table .check { color: var(--success); }
+.comparison-table .partial { color: var(--warning); }
+.comparison-table .cross { color: var(--danger); }
+
+.code-block {
+background: var(--bg-2);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 20px;
+font-family: "JetBrains Mono", "Fira Code", monospace;
+font-size: 13px;
+line-height: 1.7;
+color: var(--text-2);
+overflow-x: auto;
+margin-top: 16px;
+}
+
+.code-block .keyword { color: var(--accent); }
+.code-block .string { color: var(--accent-2); }
+.code-block .comment { color: var(--text-3); }
+
+.detail-section {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 24px;
+margin-top: 32px;
+}
+
+.detail-card {
+background: var(--panel);
+backdrop-filter: blur(24px);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 24px;
+}
+
+.detail-card h4 {
+font-size: 15px;
+font-weight: 700;
+margin-bottom: 12px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.detail-card h4 i {
+color: var(--accent);
+font-size: 16px;
+}
+
+.detail-card ul {
+list-style: none;
+}
+
+.detail-card ul li {
+font-size: 13px;
+color: var(--text-2);
+padding: 5px 0;
+display: flex;
+align-items: flex-start;
+gap: 8px;
+line-height: 1.5;
+}
+
+.detail-card ul li i {
+color: var(--accent-2);
+font-size: 10px;
+margin-top: 5px;
+flex-shrink: 0;
+}
+
+footer {
+padding: 48px 0;
+border-top: 1px solid var(--panel-border);
+margin-top: 80px;
+text-align: center;
+}
+
+footer p {
+font-size: 13px;
+color: var(--text-3);
+}
+
+footer a {
+color: var(--accent);
+text-decoration: none;
+}
+
+footer a:hover { text-decoration: underline; }
+
+footer .footer-links {
+display: flex;
+justify-content: center;
+gap: 24px;
+margin-bottom: 16px;
+}
+
+.mobile-nav-toggle {
+display: none;
+background: none;
+border: none;
+color: var(--text-1);
+font-size: 20px;
+cursor: pointer;
+}
+
+@media (max-width: 900px) {
+.cards-grid { grid-template-columns: 1fr; }
+.detail-section { grid-template-columns: 1fr; }
+.hero-stats { gap: 24px; flex-wrap: wrap; }
+.features-list { grid-template-columns: 1fr; }
+nav .nav-links { display: none; }
+.mobile-nav-toggle { display: block; }
+nav .nav-links.open {
+display: flex;
+flex-direction: column;
+position: absolute;
+top: 100%;
+left: 0;
+right: 0;
+background: var(--panel-solid);
+border-bottom: 1px solid var(--panel-border);
+padding: 16px;
+}
+}
+
+@media (max-width: 600px) {
+.comparison-table { font-size: 12px; }
+.comparison-table th, .comparison-table td { padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<nav>
+<div class="nav-inner">
+<a href="#" class="brand">
+<div class="brand-icon"><i class="fas fa-map-location-dot"></i></div>
+<h1>Quito GIS</h1>
+</a>
+<button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
+<div class="nav-links" id="nav-links">
+<a href="#ejemplos">Ejemplos</a>
+<a href="#comparativa">Comparativa</a>
+<a href="#tecnologias">Tecnologias</a>
+<a href="#creditos">Creditos</a>
+<button class="theme-toggle" id="theme-toggle" title="Cambiar tema"><i class="fas fa-sun"></i></button>
+</div>
+</div>
+</nav>
+
+<section class="hero">
+<div class="container">
+<div class="hero-badge"><i class="fas fa-globe-americas"></i> GIS Web Interactivo</div>
+<h2>Mapas de Quito con<br><span class="gradient-text">Bibliotecas GIS Open Source</span></h2>
+<p>Comparativa practica de tres bibliotecas JavaScript para visualizacion cartografica en la web: Leaflet, MapLibre GL y OpenLayers. Cada ejemplo muestra un mapa interactivo de puntos turisticos de Quito, Ecuador.</p>
+<div class="hero-stats">
+<div class="hero-stat">
+<div class="stat-value">3</div>
+<div class="stat-label">Bibliotecas</div>
+</div>
+<div class="hero-stat">
+<div class="stat-value">12</div>
+<div class="stat-label">Puntos</div>
+</div>
+<div class="hero-stat">
+<div class="stat-value">5</div>
+<div class="stat-label">Categorias</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="section" id="ejemplos">
+<div class="container">
+<span class="section-label"><i class="fas fa-code"></i> Ejemplos interactivos</span>
+<h2 class="section-title">Explora cada implementacion</h2>
+<p class="section-desc">Tres mapas funcionales con la misma tematica, construidos con diferentes bibliotecas. Haz clic en cada tarjeta para ver el mapa en vivo.</p>
+
+<div class="cards-grid">
+
+<div class="map-card" style="animation: fadeInUp 0.5s ease both;">
+<div class="map-card-header">
+<div class="map-card-icon leaflet-icon"><i class="fas fa-leaf"></i></div>
+<h3>Leaflet</h3>
+<div class="card-subtitle">leaflet-quito.html</div>
+<p class="card-desc">Biblioteca ligera y clasica para mapas 2D. Ideal para proyectos que necesitan simplicidad, rapida configuracion y un ecosistema extenso de plugins.</p>
+<a href="leaflet-quito.html" class="card-link"><i class="fas fa-arrow-right"></i> Ver mapa Leaflet</a>
+</div>
+<div class="map-card-body">
+<div class="tech-tags">
+<span class="tech-tag core">Leaflet 1.9.4</span>
+<span class="tech-tag">Leaflet MiniMap</span>
+<span class="tech-tag">CARTO Tiles</span>
+<span class="tech-tag">OpenStreetMap</span>
+<span class="tech-tag">CSS Variables</span>
+</div>
+<ul class="features-list">
+<li><i class="fas fa-circle"></i> Mapa 2D con tiles raster</li>
+<li><i class="fas fa-circle"></i> MiniMap (control de mini-mapa)</li>
+<li><i class="fas fa-circle"></i> Markers personalizados (DivIcon)</li>
+<li><i class="fas fa-circle"></i> Filtros por categoria</li>
+<li><i class="fas fa-circle"></i> Busqueda en tiempo real</li>
+<li><i class="fas fa-circle"></i> Medicion de distancias</li>
+<li><i class="fas fa-circle"></i> Geolocalizacion</li>
+<li><i class="fas fa-circle"></i> Tema claro/oscuro</li>
+</ul>
+</div>
+</div>
+
+<div class="map-card" style="animation: fadeInUp 0.5s 0.1s ease both;">
+<div class="map-card-header">
+<div class="map-card-icon maplibre-icon"><i class="fas fa-cube"></i></div>
+<h3>MapLibre GL</h3>
+<div class="card-subtitle">maplibre-quito.html</div>
+<p class="card-desc">Motor de mapas basado en WebGL con soporte para estilos vectoriales, pitch 3D, rotacion y renderizado acelerado por GPU. Fork libre de Mapbox GL JS.</p>
+<a href="maplibre-quito.html" class="card-link"><i class="fas fa-arrow-right"></i> Ver mapa MapLibre</a>
+</div>
+<div class="map-card-body">
+<div class="tech-tags">
+<span class="tech-tag core">MapLibre GL 4.7.1</span>
+<span class="tech-tag">CARTO GL Styles</span>
+<span class="tech-tag">Vector Tiles</span>
+<span class="tech-tag">WebGL</span>
+<span class="tech-tag">FlyTo Animations</span>
+</div>
+<ul class="features-list">
+<li><i class="fas fa-circle"></i> Mapa vectorial con WebGL</li>
+<li><i class="fas fa-circle"></i> Vista 3D (pitch y bearing)</li>
+<li><i class="fas fa-circle"></i> Estilos vectoriales (GL JSON)</li>
+<li><i class="fas fa-circle"></i> Markers HTML/SVG</li>
+<li><i class="fas fa-circle"></i> Animaciones flyTo</li>
+<li><i class="fas fa-circle"></i> Medicion de distancias</li>
+<li><i class="fas fa-circle"></i> Geolocalizacion</li>
+<li><i class="fas fa-circle"></i> Tema claro/oscuro</li>
+</ul>
+</div>
+</div>
+
+<div class="map-card" style="animation: fadeInUp 0.5s 0.2s ease both;">
+<div class="map-card-header">
+<div class="map-card-icon openlayers-icon"><i class="fas fa-layer-group"></i></div>
+<h3>OpenLayers</h3>
+<div class="card-subtitle">openlayers-quito.html</div>
+<p class="card-desc">Framework GIS completo y robusto. Soporte nativo para proyecciones, formatos OGC (WMS, WFS), y operaciones geoespaciales avanzadas.</p>
+<a href="openlayers-quito.html" class="card-link"><i class="fas fa-arrow-right"></i> Ver mapa OpenLayers</a>
+</div>
+<div class="map-card-body">
+<div class="tech-tags">
+<span class="tech-tag core">OpenLayers 10.4.0</span>
+<span class="tech-tag">Proyecciones EPSG</span>
+<span class="tech-tag">CARTO Tiles</span>
+<span class="tech-tag">Overlays</span>
+<span class="tech-tag">Haversine</span>
+</div>
+<ul class="features-list">
+<li><i class="fas fa-circle"></i> Mapa con proyeccion EPSG:3857</li>
+<li><i class="fas fa-circle"></i> Overlays personalizados</li>
+<li><i class="fas fa-circle"></i> Feature styling con SVG</li>
+<li><i class="fas fa-circle"></i> Vector source y layer</li>
+<li><i class="fas fa-circle"></i> Medicion con Haversine</li>
+<li><i class="fas fa-circle"></i> Geolocalizacion</li>
+<li><i class="fas fa-circle"></i> Tema claro/oscuro</li>
+<li><i class="fas fa-circle"></i> ScaleLine metrica</li>
+</ul>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section class="section" id="comparativa">
+<div class="container">
+<span class="section-label"><i class="fas fa-scale-balanced"></i> Analisis comparativo</span>
+<h2 class="section-title">Comparativa de caracteristicas</h2>
+<p class="section-desc">Resumen de las capacidades de cada biblioteca en el contexto de estos ejemplos practicos.</p>
+
+<div style="overflow-x:auto;">
+<table class="comparison-table">
+<thead>
+<tr>
+<th>Caracteristica</th>
+<th>Leaflet</th>
+<th>MapLibre GL</th>
+<th>OpenLayers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Renderizado</td>
+<td>DOM / Raster tiles</td>
+<td>WebGL / Vector tiles</td>
+<td>DOM / Raster + Vector</td>
+</tr>
+<tr>
+<td>Peso de la biblioteca</td>
+<td>~44 KB (gzipped)</td>
+<td>~300 KB (gzipped)</td>
+<td>~230 KB (gzipped)</td>
+</tr>
+<tr>
+<td>Mapa 3D (pitch/rotation)</td>
+<td class="cross"><i class="fas fa-xmark"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
+<td class="partial"><i class="fas fa-minus"></i></td>
+</tr>
+<tr>
+<td>Proyecciones multiples</td>
+<td class="partial"><i class="fas fa-minus"></i> (via plugin)</td>
+<td class="cross"><i class="fas fa-xmark"></i> (solo Mercator)</td>
+<td class="check"><i class="fas fa-check"></i></td>
+</tr>
+<tr>
+<td>Estilos vectoriales (GL)</td>
+<td class="cross"><i class="fas fa-xmark"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
+<td class="partial"><i class="fas fa-minus"></i> (mapbox-style)</td>
+</tr>
+<tr>
+<td>Protocolos OGC (WMS/WFS)</td>
+<td class="partial"><i class="fas fa-minus"></i> (via plugin)</td>
+<td class="cross"><i class="fas fa-xmark"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
+</tr>
+<tr>
+<td>Curva de aprendizaje</td>
+<td>Baja</td>
+<td>Media</td>
+<td>Alta</td>
+</tr>
+<tr>
+<td>Ecosistema de plugins</td>
+<td>Muy amplio</td>
+<td>Medio</td>
+<td>Amplio</td>
+</tr>
+<tr>
+<td>MiniMap incluido</td>
+<td class="check"><i class="fas fa-check"></i> (plugin)</td>
+<td class="cross"><i class="fas fa-xmark"></i></td>
+<td class="cross"><i class="fas fa-xmark"></i></td>
+</tr>
+<tr>
+<td>Medicion de distancias</td>
+<td class="check"><i class="fas fa-check"></i> (distanceTo)</td>
+<td class="check"><i class="fas fa-check"></i> (distanceTo)</td>
+<td class="check"><i class="fas fa-check"></i> (Haversine)</td>
+</tr>
+<tr>
+<td>Geolocalizacion</td>
+<td class="check"><i class="fas fa-check"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
+</tr>
+<tr>
+<td>Tema claro/oscuro</td>
+<td class="check"><i class="fas fa-check"></i> (swap tiles)</td>
+<td class="check"><i class="fas fa-check"></i> (setStyle)</td>
+<td class="check"><i class="fas fa-check"></i> (setVisible)</td>
+</tr>
+<tr>
+<td>Licencia</td>
+<td>BSD-2-Clause</td>
+<td>BSD-3-Clause</td>
+<td>BSD-2-Clause</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+
+<section class="section" id="tecnologias">
+<div class="container">
+<span class="section-label"><i class="fas fa-microchip"></i> Stack tecnologico</span>
+<h2 class="section-title">Tecnologias y funciones utilizadas</h2>
+<p class="section-desc">Detalle de las tecnologias, APIs y patrones de diseno empleados en cada uno de los tres mapas interactivos.</p>
+
+<div class="detail-section">
+<div class="detail-card">
+<h4><i class="fas fa-leaf"></i> Leaflet - Funciones clave</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>L.map()</strong> - Inicializacion del mapa con centro, zoom y controles</li>
+<li><i class="fas fa-circle"></i> <strong>L.tileLayer()</strong> - Carga de tiles raster desde CARTO y OSM</li>
+<li><i class="fas fa-circle"></i> <strong>L.control.layers()</strong> - Selector de capas base integrado</li>
+<li><i class="fas fa-circle"></i> <strong>L.control.scale()</strong> - Barra de escala metrica</li>
+<li><i class="fas fa-circle"></i> <strong>L.Control.MiniMap</strong> - Mini-mapa de posicion (plugin)</li>
+<li><i class="fas fa-circle"></i> <strong>L.divIcon()</strong> - Marcadores personalizados con HTML/CSS</li>
+<li><i class="fas fa-circle"></i> <strong>L.layerGroup()</strong> - Grupo de capas para gestion de markers</li>
+<li><i class="fas fa-circle"></i> <strong>L.polyline()</strong> - Linea discontinua para medicion</li>
+<li><i class="fas fa-circle"></i> <strong>L.circleMarker()</strong> - Puntos de medicion y geolocalizacion</li>
+<li><i class="fas fa-circle"></i> <strong>marker.bindPopup()</strong> - Popups informativos por marker</li>
+<li><i class="fas fa-circle"></i> <strong>latlng.distanceTo()</strong> - Calculo de distancia geodesica</li>
+<li><i class="fas fa-circle"></i> <strong>map.setView()</strong> - Navegacion animada a coordenadas</li>
+</ul>
+</div>
+
+<div class="detail-card">
+<h4><i class="fas fa-cube"></i> MapLibre GL - Funciones clave</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>new maplibregl.Map()</strong> - Mapa WebGL con estilo vectorial</li>
+<li><i class="fas fa-circle"></i> <strong>style.json</strong> - Estilos CARTO Dark Matter y Positron</li>
+<li><i class="fas fa-circle"></i> <strong>NavigationControl</strong> - Zoom, brujula y pitch visual</li>
+<li><i class="fas fa-circle"></i> <strong>ScaleControl</strong> - Escala metrica integrada</li>
+<li><i class="fas fa-circle"></i> <strong>maplibregl.Marker()</strong> - Marcadores HTML con SVG personalizado</li>
+<li><i class="fas fa-circle"></i> <strong>maplibregl.Popup()</strong> - Popups estilizados</li>
+<li><i class="fas fa-circle"></i> <strong>map.setStyle()</strong> - Cambio dinamico de estilo vectorial</li>
+<li><i class="fas fa-circle"></i> <strong>map.flyTo()</strong> - Animaciones de vuelo suaves</li>
+<li><i class="fas fa-circle"></i> <strong>map.easeTo()</strong> - Transicion suave a pitch 3D</li>
+<li><i class="fas fa-circle"></i> <strong>map.once('styledata')</strong> - Evento de recarga de estilo</li>
+<li><i class="fas fa-circle"></i> <strong>GeoJSON Source</strong> - Fuente para medicion (FeatureCollection)</li>
+<li><i class="fas fa-circle"></i> <strong>lngLat.distanceTo()</strong> - Distancia entre puntos</li>
+</ul>
+</div>
+
+<div class="detail-card">
+<h4><i class="fas fa-layer-group"></i> OpenLayers - Funciones clave</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>new ol.Map()</strong> - Mapa con vista, capas y controles</li>
+<li><i class="fas fa-circle"></i> <strong>ol.View</strong> - Vista con proyeccion EPSG:3857</li>
+<li><i class="fas fa-circle"></i> <strong>ol.proj.fromLonLat()</strong> - Conversion WGS84 a Web Mercator</li>
+<li><i class="fas fa-circle"></i> <strong>ol.proj.toLonLat()</strong> - Conversion inversa a coordenadas geograficas</li>
+<li><i class="fas fa-circle"></i> <strong>ol.layer.Tile</strong> - Capas raster (OSM, CARTO XYZ)</li>
+<li><i class="fas fa-circle"></i> <strong>ol.layer.Vector</strong> - Capa vectorial para features y medicion</li>
+<li><i class="fas fa-circle"></i> <strong>ol.source.Vector</strong> - Fuente de datos vectorial</li>
+<li><i class="fas fa-circle"></i> <strong>ol.Feature</strong> - Entidades geograficas con propiedades</li>
+<li><i class="fas fa-circle"></i> <strong>ol.geom.Point / LineString</strong> - Geometrias vectoriales</li>
+<li><i class="fas fa-circle"></i> <strong>ol.style.Icon</strong> - Iconos SVG inline para markers</li>
+<li><i class="fas fa-circle"></i> <strong>ol.Overlay</strong> - Popup overlay posicionado</li>
+<li><i class="fas fa-circle"></i> <strong>ol.control.ScaleLine</strong> - Escala metrica</li>
+<li><i class="fas fa-circle"></i> <strong>Formula Haversine</strong> - Calculo manual de distancias</li>
+<li><i class="fas fa-circle"></i> <strong>view.animate()</strong> - Animaciones de vista</li>
+</ul>
+</div>
+
+<div class="detail-card">
+<h4><i class="fas fa-palette"></i> Tecnologias comunes</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>HTML5 + CSS3</strong> - Estructura y estilos con CSS Custom Properties</li>
+<li><i class="fas fa-circle"></i> <strong>backdrop-filter</strong> - Efecto glassmorphism en paneles</li>
+<li><i class="fas fa-circle"></i> <strong>CSS Grid</strong> - Layout principal (panel lateral + mapa)</li>
+<li><i class="fas fa-circle"></i> <strong>CSS Variables</strong> - Sistema de temas (dark/light)</li>
+<li><i class="fas fa-circle"></i> <strong>Vanilla JavaScript</strong> - Sin frameworks, JS puro (ES5+)</li>
+<li><i class="fas fa-circle"></i> <strong>Geolocation API</strong> - navigator.geolocation para ubicacion</li>
+<li><i class="fas fa-circle"></i> <strong>Fullscreen API</strong> - document.requestFullscreen()</li>
+<li><i class="fas fa-circle"></i> <strong>Font Awesome 6.5</strong> - Iconografia vectorial</li>
+<li><i class="fas fa-circle"></i> <strong>Google Fonts</strong> - Inter + Playfair Display</li>
+<li><i class="fas fa-circle"></i> <strong>CARTO Basemaps</strong> - Tiles dark_all / light_all</li>
+<li><i class="fas fa-circle"></i> <strong>OpenStreetMap</strong> - Tiles raster libres</li>
+<li><i class="fas fa-circle"></i> <strong>Responsive Design</strong> - Adaptacion mobile con media queries</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<section class="section" id="creditos">
+<div class="container">
+<span class="section-label"><i class="fas fa-heart"></i> Atribuciones y creditos</span>
+<h2 class="section-title">Creditos y licencias</h2>
+<p class="section-desc">Este proyecto utiliza software de codigo abierto y datos abiertos. A continuacion los creditos correspondientes.</p>
+
+<div class="detail-section">
+<div class="detail-card">
+<h4><i class="fas fa-code-branch"></i> Bibliotecas JavaScript</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>Leaflet</strong> v1.9.4 - Licencia BSD-2-Clause - Vladimir Agafonkin, Cloudmade</li>
+<li><i class="fas fa-circle"></i> <strong>Leaflet MiniMap</strong> v3.6.1 - Licencia MIT - Norkart AS</li>
+<li><i class="fas fa-circle"></i> <strong>MapLibre GL JS</strong> v4.7.1 - Licencia BSD-3-Clause - MapLibre contributors</li>
+<li><i class="fas fa-circle"></i> <strong>OpenLayers</strong> v10.4.0 - Licencia BSD-2-Clause - OpenLayers contributors</li>
+</ul>
+</div>
+
+<div class="detail-card">
+<h4><i class="fas fa-map"></i> Datos y tiles cartograficos</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>OpenStreetMap</strong> - Datos cartograficos abiertos, Licencia ODbL</li>
+<li><i class="fas fa-circle"></i> <strong>CARTO (CartoDB)</strong> - Basemaps gratuitos, Licencia CC BY 4.0</li>
+<li><i class="fas fa-circle"></i> <strong>CARTO GL Styles</strong> - Estilos vectoriales para MapLibre GL</li>
+<li><i class="fas fa-circle"></i> <strong>jsDelivr / unpkg</strong> - CDN para distribucion de paquetes npm</li>
+</ul>
+</div>
+
+<div class="detail-card">
+<h4><i class="fas fa-icons"></i> Iconografia y tipografia</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>Font Awesome</strong> v6.5.1 - Licencia Font Awesome Free (CC BY 4.0 + SIL)</li>
+<li><i class="fas fa-circle"></i> <strong>Inter</strong> - Tipografia sans-serif, Licencia OFL (Rasmus Andersson)</li>
+<li><i class="fas fa-circle"></i> <strong>Playfair Display</strong> - Tipografia serif, Licencia OFL (Claus Eggers Sorensen)</li>
+<li><i class="fas fa-circle"></i> <strong>JetBrains Mono</strong> - Tipografia monoespaciada, Licencia OFL (JetBrains)</li>
+</ul>
+</div>
+
+<div class="detail-card">
+<h4><i class="fas fa-location-dot"></i> Datos geograficos</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>Coordenadas de POIs</strong> - Coordenadas aproximadas de puntos turisticos de Quito, Ecuador</li>
+<li><i class="fas fa-circle"></i> <strong>CRS</strong> - WGS84 (EPSG:4326) / Web Mercator (EPSG:3857)</li>
+<li><i class="fas fa-circle"></i> <strong>Centro del mapa</strong> - Lat: -0.22985, Lng: -78.52495 (Quito, Ecuador)</li>
+<li><i class="fas fa-circle"></i> Las coordenadas son referenciales y pueden no ser exactas</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<footer>
+<div class="container">
+<div class="footer-links">
+<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>
+<a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre</a>
+<a href="https://openlayers.org" target="_blank" rel="noopener">OpenLayers</a>
+<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
+<a href="https://carto.com/basemaps" target="_blank" rel="noopener">CARTO</a>
+</div>
+<p>Proyecto de comparativa GIS Web &mdash; Licencia MIT &mdash; Datos cartograficos &copy; OpenStreetMap contributors</p>
+</div>
+</footer>
+
+<script>
+(function() {
+"use strict";
+
+var saved = localStorage.getItem("quito-gis-theme");
+if (saved) {
+document.documentElement.setAttribute("data-theme", saved);
+}
+
+document.getElementById("theme-toggle").addEventListener("click", function() {
+var current = document.documentElement.getAttribute("data-theme");
+var next = current === "dark" ? "light" : "dark";
+document.documentElement.setAttribute("data-theme", next);
+localStorage.setItem("quito-gis-theme", next);
+var icon = document.querySelector("#theme-toggle i");
+icon.className = next === "dark" ? "fas fa-sun" : "fas fa-moon";
+});
+
+document.getElementById("mobile-nav-toggle").addEventListener("click", function() {
+document.getElementById("nav-links").classList.toggle("open");
+});
+
+var observer = new IntersectionObserver(function(entries) {
+entries.forEach(function(entry) {
+if (entry.isIntersecting) {
+entry.target.style.opacity = "1";
+entry.target.style.transform = "translateY(0)";
+}
+});
+}, { threshold: 0.1 });
+
+document.querySelectorAll(".detail-card, .map-card").forEach(function(el) {
+observer.observe(el);
+});
+
+})();
+</script>
+</body>
+</html>

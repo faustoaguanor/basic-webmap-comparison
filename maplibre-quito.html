@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="es-EC" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Mapa interactivo de Quito con MapLibre GL, filtros, busqueda y herramientas GIS.">
+<title>Quito GIS | MapLibre GL</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg-1: #080c14;
+--bg-2: #0a1628;
+--panel: rgba(10, 16, 30, 0.78);
+--panel-solid: #0e1525;
+--panel-border: rgba(255, 255, 255, 0.06);
+--panel-hover: rgba(255, 255, 255, 0.08);
+--text-1: #f0f4f8;
+--text-2: #8899aa;
+--text-3: #556677;
+--accent: #6c5ce7;
+--accent-glow: rgba(108, 92, 231, 0.4);
+--accent-2: #00cec9;
+--accent-2-glow: rgba(0, 206, 201, 0.35);
+--accent-3: #fd79a8;
+--danger: #ff6b6b;
+--warning: #feca57;
+--success: #00b894;
+--shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+--shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3);
+--radius: 20px;
+--radius-sm: 12px;
+--radius-xs: 8px;
+--transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+--transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] {
+--bg-1: #f0f3f8;
+--bg-2: #dfe6f0;
+--panel: rgba(255, 255, 255, 0.82);
+--panel-solid: #ffffff;
+--panel-border: rgba(0, 20, 60, 0.07);
+--panel-hover: rgba(0, 20, 60, 0.05);
+--text-1: #1a2035;
+--text-2: #5a6a7a;
+--text-3: #8a96a6;
+--accent: #5a4cd1;
+--accent-glow: rgba(90, 76, 209, 0.3);
+--accent-2: #00a89d;
+--accent-2-glow: rgba(0, 168, 157, 0.25);
+--accent-3: #e84393;
+--shadow: 0 24px 80px rgba(0, 20, 60, 0.12);
+--shadow-sm: 0 4px 16px rgba(0, 20, 60, 0.08);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; }
+
+body {
+font-family: "Inter", system-ui, -apple-system, sans-serif;
+color: var(--text-1);
+background: var(--bg-1);
+overflow: hidden;
+}
+
+@keyframes gradientShift {
+0%, 100% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+0%, 100% { transform: scale(1); }
+50% { transform: scale(1.05); }
+}
+
+.app {
+position: relative;
+width: 100vw;
+height: 100vh;
+display: grid;
+grid-template-columns: minmax(300px, 380px) 1fr;
+gap: 0;
+overflow: hidden;
+}
+
+.app::before {
+content: "";
+position: fixed;
+top: -50%; left: -50%;
+width: 200%; height: 200%;
+background: radial-gradient(ellipse at 20% 20%, var(--accent-glow), transparent 40%),
+radial-gradient(ellipse at 80% 80%, var(--accent-2-glow), transparent 40%);
+animation: gradientShift 20s ease infinite;
+background-size: 200% 200%;
+pointer-events: none;
+z-index: 0;
+}
+
+#map {
+width: 100%; height: 100%;
+overflow: hidden;
+position: relative;
+z-index: 1;
+}
+
+.panel {
+background: var(--panel);
+border-right: 1px solid var(--panel-border);
+backdrop-filter: blur(24px) saturate(1.4);
+-webkit-backdrop-filter: blur(24px) saturate(1.4);
+display: flex;
+flex-direction: column;
+gap: 0;
+overflow: hidden;
+z-index: 2;
+position: relative;
+}
+
+.panel-scroll {
+overflow-y: auto;
+overflow-x: hidden;
+flex: 1;
+padding: 24px 20px;
+scrollbar-width: thin;
+scrollbar-color: var(--panel-border) transparent;
+}
+
+.panel-scroll::-webkit-scrollbar { width: 4px; }
+.panel-scroll::-webkit-scrollbar-track { background: transparent; }
+.panel-scroll::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
+
+.panel-header { padding: 24px 20px 0; }
+
+.brand {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 6px;
+animation: fadeIn 0.6s ease;
+}
+
+.brand-icon {
+width: 42px; height: 42px;
+border-radius: var(--radius-sm);
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+display: flex; align-items: center; justify-content: center;
+font-size: 20px; color: #fff; flex-shrink: 0;
+box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.brand-text h1 {
+font-family: "Playfair Display", serif;
+font-size: 24px;
+letter-spacing: -0.5px;
+line-height: 1.1;
+}
+
+.brand-text span {
+font-size: 11px;
+color: var(--text-3);
+text-transform: uppercase;
+letter-spacing: 2px;
+font-weight: 600;
+}
+
+.topbar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 16px 20px;
+border-bottom: 1px solid var(--panel-border);
+gap: 8px;
+}
+
+.topbar-actions { display: flex; gap: 6px; align-items: center; }
+
+.icon-btn {
+width: 36px; height: 36px;
+border: 1px solid var(--panel-border);
+background: var(--panel-hover);
+color: var(--text-2);
+border-radius: var(--radius-xs);
+cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+font-size: 14px;
+transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+background: var(--accent);
+color: #fff;
+border-color: var(--accent);
+transform: translateY(-1px);
+box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.icon-btn.active {
+background: var(--accent);
+color: #fff;
+border-color: var(--accent);
+}
+
+.section { margin-bottom: 20px; animation: fadeIn 0.5s ease both; }
+.section:nth-child(2) { animation-delay: 0.1s; }
+.section:nth-child(3) { animation-delay: 0.15s; }
+.section:nth-child(4) { animation-delay: 0.2s; }
+.section:nth-child(5) { animation-delay: 0.25s; }
+
+.section-header {
+display: flex; align-items: center; justify-content: space-between;
+cursor: pointer; user-select: none;
+padding: 8px 0; margin-bottom: 10px;
+}
+
+.section-header h2 {
+font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+color: var(--text-3); font-weight: 700;
+display: flex; align-items: center; gap: 8px;
+}
+
+.section-header h2 i { font-size: 12px; color: var(--accent); }
+
+.section-chevron {
+font-size: 10px; color: var(--text-3);
+transition: transform var(--transition);
+}
+
+.section.collapsed .section-chevron { transform: rotate(-90deg); }
+.section.collapsed .section-body { display: none; }
+
+.search-wrapper { position: relative; margin-bottom: 16px; }
+
+.search-wrapper i.search-icon {
+position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+color: var(--text-3); font-size: 14px; pointer-events: none;
+transition: color var(--transition-fast);
+}
+
+.search-input {
+width: 100%; padding: 12px 14px 12px 40px;
+border-radius: var(--radius-sm);
+background: var(--panel-hover);
+border: 1px solid var(--panel-border);
+color: var(--text-1); font-size: 14px; font-family: inherit; outline: none;
+transition: all var(--transition);
+}
+
+.search-input::placeholder { color: var(--text-3); }
+
+.search-input:focus {
+border-color: var(--accent);
+box-shadow: 0 0 0 3px var(--accent-glow);
+background: rgba(108, 92, 231, 0.06);
+}
+
+.search-input:focus + i.search-icon,
+.search-wrapper:focus-within i.search-icon { color: var(--accent); }
+
+.search-clear {
+position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+background: none; border: none; color: var(--text-3);
+cursor: pointer; font-size: 12px; padding: 4px; display: none;
+transition: color var(--transition-fast);
+}
+
+.search-clear:hover { color: var(--danger); }
+
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+
+.chip {
+border: 1px solid var(--panel-border);
+background: var(--panel-hover);
+color: var(--text-2);
+border-radius: 999px; padding: 7px 14px;
+font-size: 12px; font-weight: 600; cursor: pointer;
+transition: all var(--transition);
+display: flex; align-items: center; gap: 6px; font-family: inherit;
+}
+
+.chip i { font-size: 11px; }
+
+.chip:hover {
+border-color: var(--accent); color: var(--accent);
+background: rgba(108, 92, 231, 0.08);
+}
+
+.chip.active {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff; border-color: transparent;
+box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.chip .count {
+background: rgba(255, 255, 255, 0.2);
+padding: 1px 6px; border-radius: 999px; font-size: 10px;
+}
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+
+.stat-card {
+background: var(--panel-hover);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 12px; text-align: center;
+transition: all var(--transition);
+}
+
+.stat-card:hover {
+border-color: var(--accent);
+transform: translateY(-2px);
+box-shadow: var(--shadow-sm);
+}
+
+.stat-card .stat-value {
+font-size: 22px; font-weight: 800;
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+-webkit-background-clip: text; -webkit-text-fill-color: transparent;
+background-clip: text; line-height: 1;
+}
+
+.stat-card .stat-label {
+font-size: 10px; color: var(--text-3);
+text-transform: uppercase; letter-spacing: 1.5px;
+margin-top: 4px; font-weight: 600;
+}
+
+.poi-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+.poi-item {
+border-radius: var(--radius-sm);
+border: 1px solid var(--panel-border);
+padding: 14px;
+display: flex; gap: 12px;
+background: var(--panel-hover);
+cursor: pointer;
+transition: all var(--transition);
+position: relative; overflow: hidden;
+}
+
+.poi-item::before {
+content: "";
+position: absolute; top: 0; left: 0;
+width: 3px; height: 100%;
+background: linear-gradient(180deg, var(--accent), var(--accent-2));
+opacity: 0; transition: opacity var(--transition);
+}
+
+.poi-item:hover {
+transform: translateX(4px);
+border-color: var(--accent);
+background: rgba(108, 92, 231, 0.06);
+}
+
+.poi-item:hover::before { opacity: 1; }
+
+.poi-icon {
+width: 40px; height: 40px;
+border-radius: var(--radius-xs);
+display: flex; align-items: center; justify-content: center;
+font-size: 16px; flex-shrink: 0;
+}
+
+.poi-icon.mirador { background: rgba(0, 206, 201, 0.15); color: var(--accent-2); }
+.poi-icon.cultura { background: rgba(108, 92, 231, 0.15); color: var(--accent); }
+.poi-icon.barrio { background: rgba(253, 121, 168, 0.15); color: var(--accent-3); }
+.poi-icon.naturaleza { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+.poi-icon.gastronomia { background: rgba(254, 202, 87, 0.15); color: var(--warning); }
+
+.poi-content { flex: 1; min-width: 0; }
+
+.poi-title {
+font-size: 14px; font-weight: 600; margin-bottom: 3px;
+display: flex; align-items: center; gap: 6px;
+}
+
+.poi-type-badge {
+font-size: 9px; padding: 2px 6px; border-radius: 999px;
+text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;
+}
+
+.poi-type-badge.mirador { background: rgba(0, 206, 201, 0.15); color: var(--accent-2); }
+.poi-type-badge.cultura { background: rgba(108, 92, 231, 0.15); color: var(--accent); }
+.poi-type-badge.barrio { background: rgba(253, 121, 168, 0.15); color: var(--accent-3); }
+.poi-type-badge.naturaleza { background: rgba(0, 184, 148, 0.15); color: var(--success); }
+.poi-type-badge.gastronomia { background: rgba(254, 202, 87, 0.15); color: var(--warning); }
+
+.poi-desc {
+font-size: 12px; color: var(--text-2); line-height: 1.4;
+display: -webkit-box; -webkit-line-clamp: 2;
+-webkit-box-orient: vertical; overflow: hidden;
+}
+
+.poi-coords {
+font-size: 10px; color: var(--text-3); margin-top: 4px;
+font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+.tool-card {
+background: var(--panel-hover);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 14px; cursor: pointer;
+transition: all var(--transition);
+display: flex; flex-direction: column;
+align-items: center; gap: 8px;
+text-align: center; font-family: inherit; color: var(--text-1);
+}
+
+.tool-card:hover {
+border-color: var(--accent);
+transform: translateY(-2px);
+box-shadow: var(--shadow-sm);
+}
+
+.tool-card.active {
+background: rgba(108, 92, 231, 0.1);
+border-color: var(--accent);
+}
+
+.tool-card i { font-size: 18px; color: var(--accent); transition: transform var(--transition); }
+.tool-card:hover i { transform: scale(1.15); }
+.tool-card span { font-size: 11px; font-weight: 600; color: var(--text-2); }
+
+.coord-display {
+background: var(--panel-hover);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 12px 14px;
+display: flex; align-items: center; gap: 10px;
+font-family: "SF Mono", "Fira Code", monospace;
+font-size: 12px; color: var(--text-2);
+}
+
+.coord-display i { color: var(--accent-2); font-size: 14px; }
+.coord-display .coord-value { color: var(--text-1); font-weight: 600; }
+
+.coords-bar {
+position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+z-index: 10;
+background: var(--panel); backdrop-filter: blur(16px);
+border: 1px solid var(--panel-border);
+border-radius: 999px; padding: 6px 18px;
+font-family: "SF Mono", "Fira Code", monospace;
+font-size: 11px; color: var(--text-2);
+display: flex; align-items: center; gap: 12px;
+box-shadow: var(--shadow-sm); white-space: nowrap;
+}
+
+.coords-bar .coord-val { color: var(--accent-2); font-weight: 600; }
+.coords-bar .zoom-val { color: var(--accent); font-weight: 600; }
+
+.toast-container {
+position: fixed; top: 20px; right: 20px; z-index: 10000;
+display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+
+.toast {
+background: var(--panel-solid);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 12px 18px; font-size: 13px; color: var(--text-1);
+box-shadow: var(--shadow);
+display: flex; align-items: center; gap: 10px;
+animation: fadeIn 0.3s ease;
+backdrop-filter: blur(16px); pointer-events: auto;
+min-width: 240px;
+}
+
+.toast i { font-size: 16px; }
+.toast.success i { color: var(--success); }
+.toast.info i { color: var(--accent); }
+.toast.warning i { color: var(--warning); }
+
+.maplibregl-popup { max-width: 280px; }
+
+.maplibregl-popup-content {
+background: var(--panel-solid) !important;
+backdrop-filter: blur(16px) !important;
+border-radius: var(--radius-sm) !important;
+padding: 14px 18px !important;
+box-shadow: var(--shadow) !important;
+border: 1px solid var(--panel-border) !important;
+color: var(--text-1) !important;
+font-family: "Inter", system-ui, sans-serif !important;
+}
+
+.maplibregl-popup-content h3 {
+font-size: 16px !important; font-weight: 700 !important;
+color: var(--text-1) !important; margin: 0 0 4px !important;
+}
+
+.maplibregl-popup-content p {
+font-size: 13px !important; color: var(--text-2) !important;
+margin: 0 !important; line-height: 1.5 !important;
+}
+
+.maplibregl-popup-content .popup-type {
+display: inline-block;
+font-size: 10px; padding: 2px 8px; border-radius: 999px;
+text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
+margin-bottom: 6px;
+}
+
+.maplibregl-popup-content .popup-coords {
+font-size: 10px; color: var(--text-3);
+font-family: monospace; margin-top: 8px;
+}
+
+.maplibregl-popup-tip { border-top-color: var(--panel-solid) !important; }
+
+.maplibregl-popup-close-button {
+color: var(--text-3) !important;
+font-size: 18px !important;
+padding: 6px 10px !important;
+transition: color 0.15s;
+}
+
+.maplibregl-popup-close-button:hover { color: var(--text-1) !important; }
+
+.maplibregl-ctrl-group {
+background: var(--panel) !important;
+backdrop-filter: blur(16px) !important;
+border-radius: var(--radius-sm) !important;
+border: 1px solid var(--panel-border) !important;
+box-shadow: var(--shadow-sm) !important;
+overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+width: 42px !important; height: 42px !important;
+background: transparent !important;
+border: none !important;
+border-bottom: 1px solid var(--panel-border) !important;
+cursor: pointer; transition: background 0.15s;
+}
+
+.maplibregl-ctrl-group button:last-child { border-bottom: none !important; }
+.maplibregl-ctrl-group button:hover { background: var(--panel-hover) !important; }
+.maplibregl-ctrl-group button span { filter: invert(0.85); }
+
+.maplibregl-ctrl-scale {
+background: var(--panel) !important;
+backdrop-filter: blur(8px) !important;
+border-radius: 6px !important;
+border: 1px solid var(--panel-border) !important;
+color: var(--text-2) !important;
+font-size: 10px !important;
+padding: 2px 8px !important;
+}
+
+.maplibregl-ctrl-attrib {
+background: var(--panel) !important;
+color: var(--text-3) !important;
+font-size: 10px !important;
+border-radius: 8px 0 0 0 !important;
+backdrop-filter: blur(8px);
+border: 1px solid var(--panel-border) !important;
+padding: 2px 8px !important;
+}
+
+.maplibregl-ctrl-attrib a { color: var(--accent) !important; }
+
+.marker {
+width: 30px; height: 40px; cursor: pointer;
+transition: transform 0.2s ease;
+filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.marker:hover { transform: scale(1.15); }
+
+.mobile-toggle {
+display: none;
+position: absolute; top: 16px; left: 16px; z-index: 1001;
+}
+
+.close-mobile { display: none; }
+
+@media (max-width: 900px) {
+.app { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.panel {
+position: absolute; top: 0; left: 0;
+width: 100%; height: 100%; z-index: 100;
+transform: translateX(-100%);
+transition: transform var(--transition);
+}
+.panel.open { transform: translateX(0); }
+.mobile-toggle { display: flex; }
+.panel .close-mobile { display: flex; position: absolute; top: 16px; right: 16px; }
+}
+
+.base-layers {
+display: flex; gap: 8px; overflow-x: auto;
+padding-bottom: 4px; scrollbar-width: none;
+}
+
+.base-layers::-webkit-scrollbar { display: none; }
+
+.base-card {
+min-width: 80px; height: 60px;
+border-radius: var(--radius-xs);
+border: 2px solid var(--panel-border);
+cursor: pointer; transition: all var(--transition);
+display: flex; align-items: flex-end; justify-content: center;
+padding-bottom: 6px; font-size: 9px; font-weight: 700;
+text-transform: uppercase; letter-spacing: 1px;
+color: var(--text-2); position: relative; overflow: hidden;
+font-family: inherit; background: var(--panel-hover);
+}
+
+.base-card:hover { border-color: var(--accent); }
+
+.base-card.active {
+border-color: var(--accent);
+box-shadow: 0 0 0 2px var(--accent-glow);
+color: var(--accent);
+}
+
+.base-card.active::after {
+content: ""; position: absolute; top: 4px; right: 4px;
+width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+}
+
+.measure-panel {
+position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%);
+z-index: 10;
+background: var(--panel); backdrop-filter: blur(16px);
+border: 1px solid var(--panel-border);
+border-radius: var(--radius-sm);
+padding: 14px 20px;
+box-shadow: var(--shadow); display: none; text-align: center;
+}
+
+.measure-panel.active { display: block; animation: fadeIn 0.3s ease; }
+
+.measure-panel .measure-value {
+font-size: 24px; font-weight: 800;
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.measure-panel .measure-label {
+font-size: 10px; color: var(--text-3);
+text-transform: uppercase; letter-spacing: 2px; margin-top: 4px;
+}
+
+.measure-panel .measure-hint {
+font-size: 11px; color: var(--text-2); margin-top: 8px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+<button class="icon-btn mobile-toggle" id="mobile-toggle" aria-label="Abrir panel">
+<i class="fas fa-bars"></i>
+</button>
+
+<aside class="panel" id="panel">
+<button class="icon-btn close-mobile" id="close-panel" aria-label="Cerrar panel">
+<i class="fas fa-times"></i>
+</button>
+
+<div class="panel-header">
+<div class="brand">
+<div class="brand-icon"><i class="fas fa-map-location-dot"></i></div>
+<div class="brand-text">
+<h1>Quito GIS</h1>
+<span>MapLibre GL</span>
+</div>
+</div>
+</div>
+
+<div class="topbar">
+<div class="topbar-actions">
+<button class="icon-btn active" id="btn-dark" data-theme-option="dark" title="Tema oscuro"><i class="fas fa-moon"></i></button>
+<button class="icon-btn" id="btn-light" data-theme-option="light" title="Tema claro"><i class="fas fa-sun"></i></button>
+<button class="icon-btn" id="btn-3d" title="Vista 3D"><i class="fas fa-cube"></i></button>
+<button class="icon-btn" id="btn-fullscreen" title="Pantalla completa"><i class="fas fa-expand"></i></button>
+</div>
+</div>
+
+<div class="panel-scroll">
+<div class="section" id="sec-search">
+<div class="section-header" data-section="sec-search">
+<h2><i class="fas fa-magnifying-glass"></i> Busqueda</h2>
+<i class="fas fa-chevron-down section-chevron"></i>
+</div>
+<div class="section-body">
+<div class="search-wrapper">
+<i class="fas fa-magnifying-glass search-icon"></i>
+<input class="search-input" id="search-input" type="text" placeholder="Buscar puntos de interes..." autocomplete="off">
+<button class="search-clear" id="search-clear" type="button"><i class="fas fa-xmark"></i></button>
+</div>
+</div>
+</div>
+
+<div class="section" id="sec-filters">
+<div class="section-header" data-section="sec-filters">
+<h2><i class="fas fa-filter"></i> Categorias</h2>
+<i class="fas fa-chevron-down section-chevron"></i>
+</div>
+<div class="section-body">
+<div class="filters" id="filters-container">
+<button class="chip active" data-filter="all"><i class="fas fa-globe"></i> Todos <span class="count" id="count-all">0</span></button>
+<button class="chip" data-filter="mirador"><i class="fas fa-mountain-sun"></i> Miradores <span class="count" id="count-mirador">0</span></button>
+<button class="chip" data-filter="cultura"><i class="fas fa-landmark"></i> Cultura <span class="count" id="count-cultura">0</span></button>
+<button class="chip" data-filter="barrio"><i class="fas fa-city"></i> Barrios <span class="count" id="count-barrio">0</span></button>
+<button class="chip" data-filter="naturaleza"><i class="fas fa-leaf"></i> Naturaleza <span class="count" id="count-naturaleza">0</span></button>
+<button class="chip" data-filter="gastronomia"><i class="fas fa-utensils"></i> Gastronomia <span class="count" id="count-gastronomia">0</span></button>
+</div>
+</div>
+</div>
+
+<div class="section" id="sec-stats">
+<div class="section-header" data-section="sec-stats">
+<h2><i class="fas fa-chart-simple"></i> Estadisticas</h2>
+<i class="fas fa-chevron-down section-chevron"></i>
+</div>
+<div class="section-body">
+<div class="stats-row">
+<div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Puntos</div></div>
+<div class="stat-card"><div class="stat-value" id="stat-visible">0</div><div class="stat-label">Visibles</div></div>
+<div class="stat-card"><div class="stat-value" id="stat-zoom">12</div><div class="stat-label">Zoom</div></div>
+</div>
+</div>
+</div>
+
+<div class="section" id="sec-tools">
+<div class="section-header" data-section="sec-tools">
+<h2><i class="fas fa-wrench"></i> Herramientas</h2>
+<i class="fas fa-chevron-down section-chevron"></i>
+</div>
+<div class="section-body">
+<div class="tools-grid">
+<button class="tool-card" id="tool-measure"><i class="fas fa-ruler"></i><span>Medir</span></button>
+<button class="tool-card" id="tool-locate"><i class="fas fa-location-crosshairs"></i><span>Ubicacion</span></button>
+<button class="tool-card" id="tool-center"><i class="fas fa-crosshairs"></i><span>Centrar</span></button>
+<button class="tool-card" id="tool-layers"><i class="fas fa-layer-group"></i><span>Capas</span></button>
+</div>
+<div class="base-layers" id="base-layers" style="margin-top:12px;display:none;">
+<button class="base-card active" data-base="dark" style="background:linear-gradient(135deg,#0a1628,#1a1a2e);">Dark</button>
+<button class="base-card" data-base="light" style="background:linear-gradient(135deg,#dfe6f0,#f0f3f8);">Light</button>
+<button class="base-card" data-base="osm" style="background:linear-gradient(135deg,#52b788,#95d5b2);">OSM</button>
+</div>
+</div>
+</div>
+
+<div class="section" id="sec-coords">
+<div class="section-header" data-section="sec-coords">
+<h2><i class="fas fa-location-dot"></i> Coordenadas</h2>
+<i class="fas fa-chevron-down section-chevron"></i>
+</div>
+<div class="section-body">
+<div class="coord-display">
+<i class="fas fa-location-dot"></i>
+<div>
+<div>Lat: <span class="coord-value" id="coord-lat">-0.22985</span></div>
+<div>Lng: <span class="coord-value" id="coord-lng">-78.52495</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="section" id="sec-pois">
+<div class="section-header" data-section="sec-pois">
+<h2><i class="fas fa-map-pin"></i> Puntos de interes</h2>
+<i class="fas fa-chevron-down section-chevron"></i>
+</div>
+<div class="section-body">
+<ul class="poi-list" id="poi-list" aria-live="polite"></ul>
+</div>
+</div>
+</div>
+</aside>
+
+<main id="map"></main>
+
+<div class="coords-bar" id="coords-bar">
+<span><i class="fas fa-location-dot" style="color:var(--accent-2)"></i> <span class="coord-val" id="bar-lat">-0.2299</span>, <span class="coord-val" id="bar-lng">-78.5250</span></span>
+<span>|</span>
+<span><i class="fas fa-search-plus" style="color:var(--accent)"></i> Zoom <span class="zoom-val" id="bar-zoom">12</span></span>
+</div>
+
+<div class="measure-panel" id="measure-panel">
+<div class="measure-value" id="measure-value">0.00 km</div>
+<div class="measure-label">Distancia total</div>
+<div class="measure-hint" id="measure-hint">Haz clic en el mapa para iniciar la medicion</div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script>
+(function() {
+"use strict";
+
+var CENTER = [-78.52495, -0.22985];
+var ZOOM = 12.5;
+
+var typeColors = { mirador: "#00cec9", cultura: "#6c5ce7", barrio: "#fd79a8", naturaleza: "#00b894", gastronomia: "#feca57" };
+
+var styles = {
+dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+light: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+osm: { version: 8, sources: { osm: { type: "raster", tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], tileSize: 256, attribution: "&copy; OpenStreetMap" } }, layers: [{ id: "osm", type: "raster", source: "osm" }] }
+};
+
+var currentStyle = "dark";
+
+var map = new maplibregl.Map({
+container: "map",
+style: styles.dark,
+center: CENTER,
+zoom: ZOOM,
+pitch: 0,
+bearing: 0,
+attributionControl: true
+});
+
+map.addControl(new maplibregl.NavigationControl({ visualizePitch: true, showZoom: true, showCompass: true }), "top-left");
+map.addControl(new maplibregl.ScaleControl({ maxWidth: 160, unit: "metric" }), "bottom-left");
+
+var puntosTuristicos = [
+{ coords: [-78.45556, -0.00222], nombre: "Mitad del Mundo", descripcion: "Monumento que marca la linea ecuatorial. Uno de los sitios mas visitados del pais.", tipo: "cultura", icon: "fa-landmark" },
+{ coords: [-78.50833, -0.21861], nombre: "Centro Historico", descripcion: "Corazon colonial de Quito con iglesias, plazas y museos declarados Patrimonio de la Humanidad.", tipo: "cultura", icon: "fa-landmark" },
+{ coords: [-78.54056, -0.20194], nombre: "Teleferico de Quito", descripcion: "Teleferico que asciende al volcan Pichincha a mas de 4000 msnm con vistas panoramicas.", tipo: "mirador", icon: "fa-mountain-sun" },
+{ coords: [-78.51861, -0.22861], nombre: "El Panecillo", descripcion: "Colina con la iconica estatua de la Virgen de Quito y una vista de 360 grados de la capital.", tipo: "mirador", icon: "fa-mountain-sun" },
+{ coords: [-78.49417, -0.21306], nombre: "La Mariscal", descripcion: "Barrio bohemio y cultural, famoso por su vida nocturna, galerias de arte y restaurantes.", tipo: "barrio", icon: "fa-city" },
+{ coords: [-78.5167, -0.25], nombre: "Parque Metropolitano Guangüiltagua", descripcion: "El bosque protector mas grande de Quito con 557 hectareas de flora nativa y senderos.", tipo: "naturaleza", icon: "fa-leaf" },
+{ coords: [-78.4708, -0.1807], nombre: "Parque La Carolina", descripcion: "Pulmon verde del norte de Quito con jardines, lagos, ciclovias y el Jardin Botanico.", tipo: "naturaleza", icon: "fa-leaf" },
+{ coords: [-78.505, -0.22], nombre: "La Ronda", descripcion: "Callejon colonial restaurado con artesanos, gastronomia tradicional y vida nocturna cultural.", tipo: "gastronomia", icon: "fa-utensils" },
+{ coords: [-78.51, -0.215], nombre: "Plaza Foch", descripcion: "Centro gastronomico y de entretenimiento con restaurantes internacionales y cocina fusion.", tipo: "gastronomia", icon: "fa-utensils" },
+{ coords: [-78.5113, -0.1923], nombre: "Parque Itchimbia", descripcion: "Mirador natural con vista panoramica del Centro Historico y el cerro del Panecillo.", tipo: "mirador", icon: "fa-mountain-sun" },
+{ coords: [-78.5076, -0.2198], nombre: "Iglesia de la Compania", descripcion: "Joyita barroca con interior recubierto de oro, considerada la mas bella de Latinoamerica.", tipo: "cultura", icon: "fa-landmark" },
+{ coords: [-78.5097, -0.2214], nombre: "Barrio San Marcos", descripcion: "Barrio patrimonial emergente con galerias de arte contemporaneo y cafeterias especializadas.", tipo: "barrio", icon: "fa-city" },
+];
+
+var poiList = document.getElementById("poi-list");
+var searchInput = document.getElementById("search-input");
+var searchClear = document.getElementById("search-clear");
+var filterButtons = Array.from(document.querySelectorAll(".chip[data-filter]"));
+var markers = [];
+
+function createMarkerEl(type) {
+var color = typeColors[type] || "#6c5ce7";
+var el = document.createElement("div");
+el.className = "marker";
+el.innerHTML = '<svg width="30" height="40" viewBox="0 0 30 40" fill="none">' +
+'<path d="M15 0C6.72 0 0 6.72 0 15c0 11.25 15 25 15 25s15-13.75 15-25C30 6.72 23.28 0 15 0z" fill="' + color + '"/>' +
+'<circle cx="15" cy="14" r="6" fill="white"/>' +
+'</svg>';
+return el;
+}
+
+function addMarkers() {
+markers.forEach(function(m) { m.remove(); });
+markers = [];
+
+var query = searchInput.value.trim().toLowerCase();
+var activeFilter = document.querySelector(".chip.active[data-filter]").dataset.filter;
+
+var filtered = puntosTuristicos.filter(function(p) {
+var matchesText = p.nombre.toLowerCase().includes(query) || p.descripcion.toLowerCase().includes(query);
+var matchesFilter = activeFilter === "all" || p.tipo === activeFilter;
+return matchesText && matchesFilter;
+});
+
+filtered.forEach(function(p) {
+var el = createMarkerEl(p.tipo);
+var color = typeColors[p.tipo] || "#6c5ce7";
+var popup = new maplibregl.Popup({ offset: 40, closeButton: true, closeOnClick: false }).setHTML(
+'<div><span class="popup-type" style="background:' + color + '22;color:' + color + ';">' + p.tipo + '</span>' +
+'<h3>' + p.nombre + '</h3>' +
+'<p>' + p.descripcion + '</p>' +
+'<div class="popup-coords">Lat: ' + p.coords[1].toFixed(5) + ' | Lng: ' + p.coords[0].toFixed(5) + '</div></div>'
+);
+var marker = new maplibregl.Marker({ element: el }).setLngLat(p.coords).setPopup(popup).addTo(map);
+markers.push(marker);
+});
+
+renderList(filtered);
+document.getElementById("stat-visible").textContent = filtered.length;
+}
+
+function renderList(items) {
+poiList.innerHTML = "";
+items.forEach(function(p) {
+var li = document.createElement("li");
+li.className = "poi-item";
+li.setAttribute("tabindex", "0");
+var iconClass = p.icon || "fa-map-pin";
+li.innerHTML =
+'<div class="poi-icon ' + p.tipo + '"><i class="fas ' + iconClass + '"></i></div>' +
+'<div class="poi-content">' +
+'<span class="poi-title">' + p.nombre + ' <span class="poi-type-badge ' + p.tipo + '">' + p.tipo + '</span></span>' +
+'<span class="poi-desc">' + p.descripcion + '</span>' +
+'<span class="poi-coords">' + p.coords[1].toFixed(4) + ', ' + p.coords[0].toFixed(4) + '</span>' +
+'</div>';
+var openItem = function() {
+map.flyTo({ center: p.coords, zoom: 15, duration: 1200 });
+var idx = puntosTuristicos.indexOf(p);
+if (idx >= 0 && markers[idx]) markers[idx].togglePopup();
+};
+li.addEventListener("click", openItem);
+li.addEventListener("keydown", function(e) {
+if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openItem(); }
+});
+poiList.appendChild(li);
+});
+}
+
+function updateCounts() {
+var counts = { all: puntosTuristicos.length, mirador: 0, cultura: 0, barrio: 0, naturaleza: 0, gastronomia: 0 };
+puntosTuristicos.forEach(function(p) { counts[p.tipo] = (counts[p.tipo] || 0) + 1; });
+Object.keys(counts).forEach(function(key) {
+var el = document.getElementById("count-" + key);
+if (el) el.textContent = counts[key];
+});
+document.getElementById("stat-total").textContent = puntosTuristicos.length;
+}
+
+filterButtons.forEach(function(button) {
+button.addEventListener("click", function() {
+filterButtons.forEach(function(btn) { btn.classList.remove("active"); });
+button.classList.add("active");
+addMarkers();
+});
+});
+
+searchInput.addEventListener("input", function() {
+searchClear.style.display = searchInput.value ? "block" : "none";
+addMarkers();
+});
+
+searchClear.addEventListener("click", function() {
+searchInput.value = "";
+searchClear.style.display = "none";
+addMarkers();
+searchInput.focus();
+});
+
+document.querySelectorAll(".section-header").forEach(function(header) {
+header.addEventListener("click", function() {
+header.parentElement.classList.toggle("collapsed");
+});
+});
+
+function setTheme(theme) {
+document.documentElement.setAttribute("data-theme", theme);
+document.querySelectorAll("[data-theme-option]").forEach(function(btn) {
+btn.classList.toggle("active", btn.dataset.themeOption === theme);
+});
+var currentCenter = map.getCenter();
+var currentZoom = map.getZoom();
+var currentPitch = map.getPitch();
+var currentBearing = map.getBearing();
+currentStyle = theme === "light" ? "light" : "dark";
+map.setStyle(styles[currentStyle]);
+map.once("styledata", function() {
+map.setCenter(currentCenter);
+map.setZoom(currentZoom);
+map.setPitch(currentPitch);
+map.setBearing(currentBearing);
+addMarkers();
+});
+document.querySelectorAll(".base-card").forEach(function(c) { c.classList.remove("active"); });
+document.querySelector('.base-card[data-base="' + currentStyle + '"]').classList.add("active");
+showToast("Tema " + (theme === "light" ? "claro" : "oscuro") + " activado", "info");
+}
+
+document.querySelectorAll("[data-theme-option]").forEach(function(btn) {
+btn.addEventListener("click", function() { setTheme(btn.dataset.themeOption); });
+});
+
+document.querySelectorAll(".base-card").forEach(function(card) {
+card.addEventListener("click", function() {
+var key = card.dataset.base;
+document.querySelectorAll(".base-card").forEach(function(c) { c.classList.remove("active"); });
+card.classList.add("active");
+var currentCenter = map.getCenter();
+var currentZoom = map.getZoom();
+var currentPitch = map.getPitch();
+var currentBearing = map.getBearing();
+currentStyle = key;
+map.setStyle(styles[key]);
+map.once("styledata", function() {
+map.setCenter(currentCenter);
+map.setZoom(currentZoom);
+map.setPitch(currentPitch);
+map.setBearing(currentBearing);
+addMarkers();
+});
+});
+});
+
+document.getElementById("tool-center").addEventListener("click", function() {
+map.flyTo({ center: CENTER, zoom: ZOOM, pitch: 0, bearing: 0, duration: 1200 });
+showToast("Mapa centrado en Quito", "success");
+});
+
+document.getElementById("tool-layers").addEventListener("click", function() {
+var layersDiv = document.getElementById("base-layers");
+layersDiv.style.display = layersDiv.style.display === "none" ? "flex" : "none";
+});
+
+var is3D = false;
+document.getElementById("btn-3d").addEventListener("click", function() {
+is3D = !is3D;
+document.getElementById("btn-3d").classList.toggle("active", is3D);
+map.easeTo({ pitch: is3D ? 60 : 0, duration: 1000 });
+showToast(is3D ? "Vista 3D activada" : "Vista 2D activada", "info");
+});
+
+document.getElementById("btn-fullscreen").addEventListener("click", function() {
+if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
+else { document.exitFullscreen(); }
+});
+
+var measureMode = false;
+var measurePoints = [];
+var measureSource = null;
+var measureLayer = null;
+
+document.getElementById("tool-measure").addEventListener("click", function() {
+measureMode = !measureMode;
+document.getElementById("tool-measure").classList.toggle("active", measureMode);
+document.getElementById("measure-panel").classList.toggle("active", measureMode);
+if (measureMode) {
+showToast("Modo medicion activado. Haz clic en el mapa.", "info");
+document.getElementById("measure-hint").textContent = "Haz clic en el mapa para agregar puntos";
+map.getCanvas().style.cursor = "crosshair";
+if (!measureSource) {
+measureSource = { type: "geojson", data: { type: "FeatureCollection", features: [] } };
+}
+} else {
+clearMeasure();
+map.getCanvas().style.cursor = "";
+showToast("Medicion desactivada", "info");
+}
+});
+
+function clearMeasure() {
+measurePoints = [];
+document.getElementById("measure-value").textContent = "0.00 km";
+document.getElementById("measure-hint").textContent = "Haz clic en el mapa para iniciar la medicion";
+if (map.getSource("measure-source")) {
+map.getSource("measure-source").setData({ type: "FeatureCollection", features: [] });
+}
+}
+
+function formatDistance(meters) {
+if (meters >= 1000) return (meters / 1000).toFixed(2) + " km";
+return meters.toFixed(0) + " m";
+}
+
+map.on("click", function(e) {
+if (!measureMode) return;
+measurePoints.push(e.lngLat);
+if (measurePoints.length > 1) {
+var totalDist = 0;
+var lineCoords = measurePoints.map(function(p) { return [p.lng, p.lat]; });
+for (var i = 1; i < measurePoints.length; i++) {
+totalDist += measurePoints[i - 1].distanceTo(measurePoints[i]);
+}
+document.getElementById("measure-value").textContent = formatDistance(totalDist);
+document.getElementById("measure-hint").textContent = "Haz doble clic para terminar";
+}
+});
+
+map.on("dblclick", function(e) {
+if (measureMode) {
+e.preventDefault();
+measureMode = false;
+document.getElementById("tool-measure").classList.remove("active");
+map.getCanvas().style.cursor = "";
+document.getElementById("measure-hint").textContent = "Medicion completada";
+showToast("Medicion completada", "success");
+}
+});
+
+document.getElementById("tool-locate").addEventListener("click", function() {
+if (!navigator.geolocation) { showToast("Geolocalizacion no disponible", "warning"); return; }
+showToast("Obteniendo ubicacion...", "info");
+navigator.geolocation.getCurrentPosition(function(pos) {
+var lngLat = [pos.coords.longitude, pos.coords.latitude];
+map.flyTo({ center: lngLat, zoom: 15, duration: 1500 });
+new maplibregl.Marker({ color: "#00cec9" }).setLngLat(lngLat).addTo(map);
+showToast("Ubicacion encontrada", "success");
+}, function() {
+showToast("No se pudo obtener la ubicacion", "warning");
+}, { enableHighAccuracy: true });
+});
+
+map.on("mousemove", function(e) {
+document.getElementById("coord-lat").textContent = e.lngLat.lat.toFixed(5);
+document.getElementById("coord-lng").textContent = e.lngLat.lng.toFixed(5);
+document.getElementById("bar-lat").textContent = e.lngLat.lat.toFixed(4);
+document.getElementById("bar-lng").textContent = e.lngLat.lng.toFixed(4);
+});
+
+map.on("zoomend", function() {
+var z = map.getZoom();
+document.getElementById("stat-zoom").textContent = z.toFixed(1);
+document.getElementById("bar-zoom").textContent = z.toFixed(1);
+});
+
+document.getElementById("mobile-toggle").addEventListener("click", function() {
+document.getElementById("panel").classList.add("open");
+});
+
+document.getElementById("close-panel").addEventListener("click", function() {
+document.getElementById("panel").classList.remove("open");
+});
+
+function showToast(message, type) {
+type = type || "info";
+var icons = { success: "fa-circle-check", info: "fa-circle-info", warning: "fa-triangle-exclamation" };
+var container = document.getElementById("toast-container");
+var toast = document.createElement("div");
+toast.className = "toast " + type;
+toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + '"></i> ' + message;
+container.appendChild(toast);
+setTimeout(function() {
+toast.style.opacity = "0";
+toast.style.transform = "translateX(20px)";
+toast.style.transition = "all 0.3s ease";
+setTimeout(function() { toast.remove(); }, 300);
+}, 3000);
+}
+
+map.on("load", function() {
+addMarkers();
+updateCounts();
+showToast("Mapa de Quito (MapLibre GL) cargado", "success");
+});
+
+})();
+</script>
+</body>
+</html>
