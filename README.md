@@ -155,7 +155,7 @@ quito-gis/
 
 ```bash
 git clone https://github.com/faustoaguanor/basic-webmap-comparison.git
-cd quito-gis
+cd basic-webmap-comparison
 ```
 
 1. Abre `index.html` en un navegador:
@@ -180,7 +180,7 @@ npx serve .
 2. Ve a **Settings > Pages**
 3. En **Source**, selecciona la rama `main` y la carpeta `/` (root)
 4. Guarda y espera unos minutos
-5. Tu sitio estará disponible en `https://tu-usuario.github.io/quito-gis/`
+5. Tu sitio estará disponible en `https://faustoaguanor.github.io/basic-webmap-comparison/`
 
 ## Datos geográficos
 
@@ -229,7 +229,7 @@ Las coordenadas de los 12 puntos turísticos son aproximadas y referenciales:
 | Font Awesome 6.5.1 | Fonticons, Inc.      | Font Awesome Free (CC BY 4.0 + SIL OFL) |
 | Inter              | Rasmus Andersson     | SIL Open Font License 1.1               |
 | Playfair Display   | Claus Eggers Sørenen | SIL Open Font License 1.1               |
-| JetBrains Mono     | JetBrains            | SIL Open Font License 1.1 |
+| JetBrains Mono     | JetBrains            | SIL Open Font License 1.1               |
 
 Los mapas utilizan tiles de CARTO y OpenStreetMap, que requieren la siguiente atribución:
 
