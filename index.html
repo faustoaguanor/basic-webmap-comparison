@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Comparativa de bibliotecas GIS web: Leaflet, MapLibre GL y OpenLayers. Mapas interactivos de Quito, Ecuador.">
+<meta name="description" content="Comparativa de bibliotecas GIS web: Leaflet, MapLibre GL, OpenLayers y GeoExt. Mapas interactivos de Quito, Ecuador.">
 <title>Quito GIS | Comparativa de Bibliotecas GIS Web</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -373,6 +373,11 @@ background: linear-gradient(135deg, #1a6faa, #57b4e0);
 box-shadow: 0 8px 24px rgba(26, 111, 170, 0.3);
 }
 
+.map-card-icon.geoext-icon {
+background: linear-gradient(135deg, #e84393, #fd79a8);
+box-shadow: 0 8px 24px rgba(232, 67, 147, 0.3);
+}
+
 .map-card h3 {
 font-size: 22px;
 font-weight: 700;
@@ -658,10 +663,10 @@ padding: 16px;
 <div class="container">
 <div class="hero-badge"><i class="fas fa-globe-americas"></i> GIS Web Interactivo</div>
 <h2>Mapas de Quito con<br><span class="gradient-text">Bibliotecas GIS Open Source</span></h2>
-<p>Comparativa practica de tres bibliotecas JavaScript para visualizacion cartografica en la web: Leaflet, MapLibre GL y OpenLayers. Cada ejemplo muestra un mapa interactivo de puntos turisticos de Quito, Ecuador.</p>
+<p>Comparativa practica de cuatro bibliotecas JavaScript para visualizacion cartografica en la web: Leaflet, MapLibre GL, OpenLayers y GeoExt. Cada ejemplo muestra un mapa interactivo de puntos turisticos de Quito, Ecuador.</p>
 <div class="hero-stats">
 <div class="hero-stat">
-<div class="stat-value">3</div>
+<div class="stat-value">4</div>
 <div class="stat-label">Bibliotecas</div>
 </div>
 <div class="hero-stat">
@@ -680,7 +685,7 @@ padding: 16px;
 <div class="container">
 <span class="section-label"><i class="fas fa-code"></i> Ejemplos interactivos</span>
 <h2 class="section-title">Explora cada implementacion</h2>
-<p class="section-desc">Tres mapas funcionales con la misma tematica, construidos con diferentes bibliotecas. Haz clic en cada tarjeta para ver el mapa en vivo.</p>
+<p class="section-desc">Cuatro mapas funcionales con la misma tematica, construidos con diferentes bibliotecas. Haz clic en cada tarjeta para ver el mapa en vivo.</p>
 
 <div class="cards-grid">
 
@@ -771,6 +776,35 @@ padding: 16px;
 </div>
 </div>
 
+<div class="map-card" style="animation: fadeInUp 0.5s 0.3s ease both;">
+<div class="map-card-header">
+<div class="map-card-icon geoext-icon"><i class="fas fa-puzzle-piece"></i></div>
+<h3>GeoExt</h3>
+<div class="card-subtitle">geoext-quito.html</div>
+<p class="card-desc">Framework GIS que combina la potencia de OpenLayers con la interfaz de usuario de ExtJS. Ofrece componentes UI avanzados como arboles de capas, grillas de features y popups integrados.</p>
+<a href="geoext-quito.html" class="card-link"><i class="fas fa-arrow-right"></i> Ver mapa GeoExt</a>
+</div>
+<div class="map-card-body">
+<div class="tech-tags">
+<span class="tech-tag core">GeoExt 7.0.0</span>
+<span class="tech-tag">ExtJS 7.0.0</span>
+<span class="tech-tag">OpenLayers 10.1.0</span>
+<span class="tech-tag">GeoExt.component.Map</span>
+<span class="tech-tag">GeoExt.component.Popup</span>
+</div>
+<ul class="features-list">
+<li><i class="fas fa-circle"></i> Componente GeoExt.component.Map</li>
+<li><i class="fas fa-circle"></i> Popup con GeoExt.component.Popup</li>
+<li><i class="fas fa-circle"></i> ExtJS Layout System</li>
+<li><i class="fas fa-circle"></i> Feature styling con SVG</li>
+<li><i class="fas fa-circle"></i> Medicion con Haversine</li>
+<li><i class="fas fa-circle"></i> Geolocalizacion</li>
+<li><i class="fas fa-circle"></i> Tema claro/oscuro</li>
+<li><i class="fas fa-circle"></i> ScaleLine metrica</li>
+</ul>
+</div>
+</div>
+
 </div>
 </div>
 </section>
@@ -789,6 +823,7 @@ padding: 16px;
 <th>Leaflet</th>
 <th>MapLibre GL</th>
 <th>OpenLayers</th>
+<th>GeoExt</th>
 </tr>
 </thead>
 <tbody>
@@ -797,17 +832,20 @@ padding: 16px;
 <td>DOM / Raster tiles</td>
 <td>WebGL / Vector tiles</td>
 <td>DOM / Raster + Vector</td>
+<td>DOM / Raster + Vector</td>
 </tr>
 <tr>
 <td>Peso de la biblioteca</td>
 <td>~44 KB (gzipped)</td>
 <td>~300 KB (gzipped)</td>
 <td>~230 KB (gzipped)</td>
+<td>~50 KB + ExtJS (~1 MB)</td>
 </tr>
 <tr>
 <td>Mapa 3D (pitch/rotation)</td>
 <td class="cross"><i class="fas fa-xmark"></i></td>
 <td class="check"><i class="fas fa-check"></i></td>
+<td class="partial"><i class="fas fa-minus"></i></td>
 <td class="partial"><i class="fas fa-minus"></i></td>
 </tr>
 <tr>
@@ -815,17 +853,20 @@ padding: 16px;
 <td class="partial"><i class="fas fa-minus"></i> (via plugin)</td>
 <td class="cross"><i class="fas fa-xmark"></i> (solo Mercator)</td>
 <td class="check"><i class="fas fa-check"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
 </tr>
 <tr>
 <td>Estilos vectoriales (GL)</td>
 <td class="cross"><i class="fas fa-xmark"></i></td>
 <td class="check"><i class="fas fa-check"></i></td>
 <td class="partial"><i class="fas fa-minus"></i> (mapbox-style)</td>
+<td class="partial"><i class="fas fa-minus"></i> (via OL)</td>
 </tr>
 <tr>
 <td>Protocolos OGC (WMS/WFS)</td>
 <td class="partial"><i class="fas fa-minus"></i> (via plugin)</td>
 <td class="cross"><i class="fas fa-xmark"></i></td>
+<td class="check"><i class="fas fa-check"></i></td>
 <td class="check"><i class="fas fa-check"></i></td>
 </tr>
 <tr>
@@ -833,27 +874,32 @@ padding: 16px;
 <td>Baja</td>
 <td>Media</td>
 <td>Alta</td>
+<td>Alta</td>
 </tr>
 <tr>
 <td>Ecosistema de plugins</td>
 <td>Muy amplio</td>
 <td>Medio</td>
 <td>Amplio</td>
+<td>Medio</td>
 </tr>
 <tr>
 <td>MiniMap incluido</td>
 <td class="check"><i class="fas fa-check"></i> (plugin)</td>
 <td class="cross"><i class="fas fa-xmark"></i></td>
 <td class="cross"><i class="fas fa-xmark"></i></td>
+<td class="check"><i class="fas fa-check"></i> (OverviewMap)</td>
 </tr>
 <tr>
 <td>Medicion de distancias</td>
 <td class="check"><i class="fas fa-check"></i> (distanceTo)</td>
 <td class="check"><i class="fas fa-check"></i> (distanceTo)</td>
 <td class="check"><i class="fas fa-check"></i> (Haversine)</td>
+<td class="check"><i class="fas fa-check"></i> (Haversine)</td>
 </tr>
 <tr>
 <td>Geolocalizacion</td>
+<td class="check"><i class="fas fa-check"></i></td>
 <td class="check"><i class="fas fa-check"></i></td>
 <td class="check"><i class="fas fa-check"></i></td>
 <td class="check"><i class="fas fa-check"></i></td>
@@ -863,12 +909,14 @@ padding: 16px;
 <td class="check"><i class="fas fa-check"></i> (swap tiles)</td>
 <td class="check"><i class="fas fa-check"></i> (setStyle)</td>
 <td class="check"><i class="fas fa-check"></i> (setVisible)</td>
+<td class="check"><i class="fas fa-check"></i> (setVisible)</td>
 </tr>
 <tr>
 <td>Licencia</td>
 <td>BSD-2-Clause</td>
 <td>BSD-3-Clause</td>
 <td>BSD-2-Clause</td>
+<td>GPL-3.0</td>
 </tr>
 </tbody>
 </table>
@@ -880,7 +928,7 @@ padding: 16px;
 <div class="container">
 <span class="section-label"><i class="fas fa-microchip"></i> Stack tecnologico</span>
 <h2 class="section-title">Tecnologias y funciones utilizadas</h2>
-<p class="section-desc">Detalle de las tecnologias, APIs y patrones de diseno empleados en cada uno de los tres mapas interactivos.</p>
+<p class="section-desc">Detalle de las tecnologias, APIs y patrones de diseno empleados en cada uno de los cuatro mapas interactivos.</p>
 
 <div class="detail-section">
 <div class="detail-card">
@@ -940,6 +988,24 @@ padding: 16px;
 </div>
 
 <div class="detail-card">
+<h4><i class="fas fa-puzzle-piece"></i> GeoExt - Funciones clave</h4>
+<ul>
+<li><i class="fas fa-circle"></i> <strong>Ext.application()</strong> - Inicializacion de la aplicacion ExtJS</li>
+<li><i class="fas fa-circle"></i> <strong>GeoExt.component.Map</strong> - Componente que envuelve un ol.Map</li>
+<li><i class="fas fa-circle"></i> <strong>GeoExt.component.Popup</strong> - Popup integrado con el mapa</li>
+<li><i class="fas fa-circle"></i> <strong>Ext.Loader.setConfig()</strong> - Carga dinamica de clases GeoExt</li>
+<li><i class="fas fa-circle"></i> <strong>ol.Map</strong> - Mapa base con proyeccion EPSG:3857</li>
+<li><i class="fas fa-circle"></i> <strong>ol.layer.Tile</strong> - Capas raster (OSM, CARTO XYZ)</li>
+<li><i class="fas fa-circle"></i> <strong>ol.layer.Vector</strong> - Capa vectorial para features y medicion</li>
+<li><i class="fas fa-circle"></i> <strong>ol.Overlay</strong> - Overlay para popup personalizado</li>
+<li><i class="fas fa-circle"></i> <strong>ol.style.Icon</strong> - Iconos SVG inline para markers</li>
+<li><i class="fas fa-circle"></i> <strong>pointerrest event</strong> - Evento GeoExt al descansar puntero</li>
+<li><i class="fas fa-circle"></i> <strong>Formula Haversine</strong> - Calculo manual de distancias</li>
+<li><i class="fas fa-circle"></i> <strong>view.animate()</strong> - Animaciones de vista</li>
+</ul>
+</div>
+
+<div class="detail-card">
 <h4><i class="fas fa-palette"></i> Tecnologias comunes</h4>
 <ul>
 <li><i class="fas fa-circle"></i> <strong>HTML5 + CSS3</strong> - Estructura y estilos con CSS Custom Properties</li>
@@ -974,6 +1040,8 @@ padding: 16px;
 <li><i class="fas fa-circle"></i> <strong>Leaflet MiniMap</strong> v3.6.1 - Licencia MIT - Norkart AS</li>
 <li><i class="fas fa-circle"></i> <strong>MapLibre GL JS</strong> v4.7.1 - Licencia BSD-3-Clause - MapLibre contributors</li>
 <li><i class="fas fa-circle"></i> <strong>OpenLayers</strong> v10.4.0 - Licencia BSD-2-Clause - OpenLayers contributors</li>
+<li><i class="fas fa-circle"></i> <strong>GeoExt</strong> v7.0.0 - Licencia GPL-3.0 - GeoExt contributors</li>
+<li><i class="fas fa-circle"></i> <strong>ExtJS</strong> v7.0.0 (GPL) - Licencia GPL-3.0 - Sencha Inc.</li>
 </ul>
 </div>
 
@@ -1016,6 +1084,7 @@ padding: 16px;
 <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>
 <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre</a>
 <a href="https://openlayers.org" target="_blank" rel="noopener">OpenLayers</a>
+<a href="https://geoext.github.io/geoext/" target="_blank" rel="noopener">GeoExt</a>
 <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>
 <a href="https://carto.com/basemaps" target="_blank" rel="noopener">CARTO</a>
 </div>

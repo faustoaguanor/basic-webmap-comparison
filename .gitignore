@@ -1,0 +1,11 @@
+# Local assistant/tooling folders
+.claude/
+.codex/
+.cursor/
+.vscode/
+.idea/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
