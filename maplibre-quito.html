@@ -78,7 +78,18 @@
   } catch (err) {
     // Sin WebGL (aceleración por hardware desactivada, GPU en lista negra...) MapLibre lanza aquí.
     console.error(err);
-    ui.notify("MapLibre necesita WebGL y no está disponible: " + (err && err.message ? err.message : err), "danger");
+    ui.mapEl.innerHTML =
+      '<div class="fallback" role="alert">' +
+      "<h2>Este navegador no puede usar WebGL</h2>" +
+      "<p>MapLibre GL dibuja el mapa con la tarjeta gráfica (WebGL) y aquí está desactivado, por eso no se ve nada. Para activarlo:</p>" +
+      "<ul>" +
+      "<li><b>Chrome / Edge:</b> Configuración → Sistema → activar «Usar aceleración gráfica cuando esté disponible» y reiniciar el navegador. Puede comprobar el estado en <code>chrome://gpu</code>.</li>" +
+      "<li><b>Firefox:</b> Ajustes → General → Rendimiento → desmarcar «Usar la configuración de rendimiento recomendada» y activar «Usar aceleración por hardware cuando esté disponible».</li>" +
+      "<li>Si usa un modo de ahorro de energía, una máquina virtual o escritorio remoto, WebGL suele estar desactivado.</li>" +
+      "</ul>" +
+      '<p><a class="btn btn-brand" href="leaflet-quito.html">Abrir el visor de Leaflet (no requiere WebGL)</a></p>' +
+      '<details><summary>Detalle técnico</summary><code>' + C.escapeHtml(err && err.message ? err.message : String(err)) + "</code></details>" +
+      "</div>";
     return;
   }
   map.addControl(new maplibregl.NavigationControl({ showZoom: false, showCompass: true, visualizePitch: true }), "top-right");

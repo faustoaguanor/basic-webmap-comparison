@@ -170,7 +170,8 @@
 
     var basemapCombo = Ext.create("Ext.form.field.ComboBox", {
       fieldLabel: "Mapa base",
-      labelAlign: "top",
+      labelWidth: 70,
+      width: 260,
       editable: false,
       queryMode: "local",
       displayField: "label",
@@ -272,20 +273,22 @@
         '<nav class="nav">' + NAV.map(function (n) { return '<a href="' + n[0] + '"' + (n[1] === "GeoExt" ? ' aria-current="page"' : "") + ">" + n[1] + "</a>"; }).join("") + "</nav>",
     });
 
+    function goHome() { view.animate({ center: fromLonLat([C.CENTER.lng, C.CENTER.lat]), zoom: C.ZOOM, duration: 800 }); }
+    function clearMeasure() { measurePts = []; drawMeasure(); }
+
     var side = Ext.create("Ext.panel.Panel", {
       region: "west", width: 340, split: true, title: "Capas y herramientas", collapsible: true,
       layout: { type: "vbox", align: "stretch" },
       items: [
         { xtype: "container", padding: 12, layout: "anchor", items: [searchField] },
         { xtype: "fieldset", title: "Categorías", margin: "0 12 8 12", padding: "4 8", defaults: { anchor: "100%" }, items: catChecks },
-        { xtype: "container", padding: "0 12 8 12", layout: "anchor", items: [basemapCombo] },
-        { xtype: "toolbar", items: [measureBtn, { text: "Inicio", handler: function () { view.animate({ center: fromLonLat([C.CENTER.lng, C.CENTER.lat]), zoom: C.ZOOM, duration: 800 }); } }, "->", { text: "Borrar", handler: function () { measurePts = []; drawMeasure(); } }] },
         grid,
       ],
     });
 
     var center = Ext.create("Ext.panel.Panel", {
       region: "center", layout: "fit", border: false, items: [mapComponent],
+      tbar: [basemapCombo, "->", measureBtn, { text: "Inicio", handler: goHome }, { text: "Borrar medida", handler: clearMeasure }],
       bbar: [measureLabel, statusText, "->", coordText, "-", scaleText, "-", "WGS 84"],
     });
 
