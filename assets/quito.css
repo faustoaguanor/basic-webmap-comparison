@@ -284,6 +284,16 @@ a { color: var(--brand); }
 [data-theme="dark"] .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1); }
 .leaflet-control-minimap { border: 1px solid var(--border) !important; border-radius: var(--radius) !important; box-shadow: var(--shadow) !important; background: var(--bg) !important; }
 
+/* ---------- aviso cuando falta WebGL ---------- */
+.fallback { position: absolute; inset: 0; overflow: auto; padding: 32px 24px; background: var(--bg-alt); color: var(--text); }
+.fallback > * { max-width: 620px; margin-left: auto; margin-right: auto; }
+.fallback h2 { margin-top: 0; font-size: 20px; font-weight: 600; }
+.fallback ul { padding-left: 20px; }
+.fallback li { margin-bottom: 8px; }
+.fallback code { font-family: var(--mono); font-size: 12px; background: var(--bg-hover); padding: 1px 4px; border-radius: 2px; }
+.fallback .btn { text-decoration: none; }
+.fallback details { color: var(--text-2); font-size: 12px; }
+
 /* ---------- adaptable ---------- */
 @media (max-width: 760px) {
   :root { --panel-w: 100vw; }

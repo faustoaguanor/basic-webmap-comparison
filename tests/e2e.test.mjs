@@ -266,3 +266,30 @@ test("Portada: sin errores, cuatro tarjetas de visores válidas y tema oscuro pe
   assert.deepEqual(errs, []);
   await ctx.close();
 });
+
+test("MapLibre GL: sin WebGL muestra instrucciones y un enlace a Leaflet en vez de quedarse en blanco", async () => {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await mockNetwork(context);
+  await context.addInitScript(() => {
+    const orig = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...rest) { return /webgl/i.test(type) ? null : orig.call(this, type, ...rest); };
+  });
+  const page = await context.newPage();
+  await page.goto(`${srv.base}/maplibre-quito.html`);
+  await page.locator(".fallback").waitFor({ timeout: 8000 });
+  assert.match(await page.locator(".fallback h2").textContent(), /WebGL/);
+  assert.equal(await page.getAttribute(".fallback a.btn", "href"), "leaflet-quito.html");
+  assert.equal(await page.locator("#results .result").count(), 12); // el resto de la interfaz sigue operativa
+  await context.close();
+});
+
+test("GeoExt: el selector de mapa base está en la barra superior del mapa", async () => {
+  const { page, context } = await open("geoext-quito.html");
+  await page.waitForSelector(".x-grid-item", { timeout: 15000 });
+  const inMapToolbar = await page.evaluate(() => {
+    const cmb = Ext.ComponentQuery.query("combobox")[0];
+    return !!cmb.up("toolbar") && cmb.getEl().getY() < 120 && cmb.getEl().getX() > 340;
+  });
+  assert.equal(inMapToolbar, true);
+  await context.close();
+});
