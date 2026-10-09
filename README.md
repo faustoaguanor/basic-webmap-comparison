@@ -58,7 +58,7 @@ Notas:
 
 Detalles de comparabilidad: MapLibre usa teselas de 512 px y su "zoom 13" equivale al 14 de Leaflet/OpenLayers; el visor lo compensa para que todos muestren la misma escala con el mismo zoom.
 
-GeoExt carga Ext JS GPL 6.2.0 (`extjs-gpl`) y las clases de `@geoext/geoext` 7.0.1 desde jsDelivr mediante `Ext.Loader`. Usa el tema claro Crisp de Ext JS y no tiene modo oscuro.
+GeoExt usa Ext JS GPL 6.2.0 y las clases de `@geoext/geoext` 7.0.1 incluidas en `vendor/` (el paquete `extjs-gpl` pesa ~450 MB y jsDelivr no lo sirve); `Ext.Loader` las carga bajo demanda. Usa el tema claro Crisp de Ext JS y no tiene modo oscuro.
 
 ## Pruebas
 

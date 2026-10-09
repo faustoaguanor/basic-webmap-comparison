@@ -6,7 +6,7 @@
 <meta name="description" content="Visor de puntos turísticos de Quito con GeoExt (Ext JS + OpenLayers): componentes de interfaz ricos sobre un mapa OpenLayers." />
 <title>Quito GIS | GeoExt</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.4.0/ol.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/extjs-gpl@6.2.0/build/classic/theme-crisp/resources/theme-crisp-all.css" />
+<link rel="stylesheet" href="vendor/extjs/theme-crisp/theme-crisp-all.css" />
 <link rel="stylesheet" href="assets/quito.css" />
 <link rel="stylesheet" href="assets/quito-geoext.css" />
 </head>
@@ -14,7 +14,7 @@
 <noscript>Este visor necesita JavaScript.</noscript>
 
 <script src="https://cdn.jsdelivr.net/npm/ol@10.4.0/dist/ol.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/extjs-gpl@6.2.0/build/ext-all.js"></script>
+<script src="vendor/extjs/ext-all.js"></script>
 <script src="assets/quito-core.js"></script>
 <script>
 (function () {
@@ -26,11 +26,11 @@
     return;
   }
 
-  /* Ext.Loader descarga las clases de GeoExt (paquete npm @geoext/geoext) bajo demanda. */
+  /* Ext.Loader descarga bajo demanda las clases de GeoExt incluidas en vendor/geoext/src. */
   Ext.Loader.setConfig({
     enabled: true,
     disableCaching: false,
-    paths: { GeoExt: "https://cdn.jsdelivr.net/npm/@geoext/geoext@7.0.1/src" },
+    paths: { GeoExt: "vendor/geoext/src" },
   });
   Ext.require(["GeoExt.component.Map", "GeoExt.component.Popup"]);
 
@@ -39,7 +39,14 @@
     ["openlayers-quito.html", "OpenLayers"], ["geoext-quito.html", "GeoExt"],
   ];
 
-  Ext.onReady(function () {
+  function fail(e) {
+    console.error(e);
+    document.body.innerHTML = '<p style="padding:24px;font-family:sans-serif">No se pudo iniciar el visor GeoExt: ' + C.escapeHtml(e && e.message ? e.message : e) + "</p>";
+  }
+
+  Ext.onReady(function () { try { start(); } catch (e) { fail(e); } });
+
+  function start() {
     var fromLonLat = ol.proj.fromLonLat, toLonLat = ol.proj.toLonLat;
 
     /* ---------- mapa OpenLayers ---------- */
@@ -286,7 +293,7 @@
     setBasemap(basemapCombo.getValue());
     updateScale();
     window.__quito = { olMap: olMap, mapComponent: mapComponent, store: poiStore, visibleCount: function () { return visibleIds.size; } };
-  });
+  }
 })();
 </script>
 </body>

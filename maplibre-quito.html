@@ -37,7 +37,7 @@
     data: {
       type: "FeatureCollection",
       features: C.POIS.map(function (p) {
-        return { type: "Feature", id: p.id, geometry: { type: "Point", coordinates: [p.lng, p.lat] }, properties: { id: p.id, tipo: p.tipo } };
+        return { type: "Feature", geometry: { type: "Point", coordinates: [p.lng, p.lat] }, properties: { id: p.id, tipo: p.tipo } };
       }),
     },
   };
@@ -63,16 +63,24 @@
   function Z(z) { return z - 1; }
   function W(z) { return z + 1; }
 
-  var map = new maplibregl.Map({
-    container: ui.mapEl,
-    style: { version: 8, sources: sources, layers: layers },
-    center: [C.CENTER.lng, C.CENTER.lat],
-    zoom: Z(C.ZOOM),
-    minZoom: Z(C.MIN_ZOOM),
-    maxZoom: Z(C.MAX_ZOOM),
-    maxPitch: 70,
-    attributionControl: { compact: false },
-  });
+  var map;
+  try {
+    map = new maplibregl.Map({
+      container: ui.mapEl,
+      style: { version: 8, sources: sources, layers: layers },
+      center: [C.CENTER.lng, C.CENTER.lat],
+      zoom: Z(C.ZOOM),
+      minZoom: Z(C.MIN_ZOOM),
+      maxZoom: Z(C.MAX_ZOOM),
+      maxPitch: 70,
+      attributionControl: { compact: false },
+    });
+  } catch (err) {
+    // Sin WebGL (aceleración por hardware desactivada, GPU en lista negra...) MapLibre lanza aquí.
+    console.error(err);
+    ui.notify("MapLibre necesita WebGL y no está disponible: " + (err && err.message ? err.message : err), "danger");
+    return;
+  }
   map.addControl(new maplibregl.NavigationControl({ showZoom: false, showCompass: true, visualizePitch: true }), "top-right");
   map.addControl(new maplibregl.ScaleControl({ maxWidth: 140, unit: "metric" }), "bottom-left");
   map.doubleClickZoom.enable();
@@ -108,8 +116,13 @@
 
   /* Errores de teselas del mapa base visible (los de otras fuentes se ignoran). */
   var activeBase = null;
+  var reported = false;
   map.on("error", function (e) {
-    if (e && e.sourceId && e.sourceId === "bm-" + activeBase) ui.basemapEvent("error", activeBase);
+    if (e && e.sourceId && e.sourceId === "bm-" + activeBase) { ui.basemapEvent("error", activeBase); return; }
+    if (reported || (e && e.sourceId)) return;
+    reported = true;
+    console.error(e && e.error);
+    ui.notify("Error de MapLibre: " + (e && e.error && e.error.message ? e.error.message : "desconocido"), "danger");
   });
   map.on("data", function (e) {
     if (e.dataType === "source" && e.tile && e.sourceId === "bm-" + activeBase) ui.basemapEvent("load", activeBase);
