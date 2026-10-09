@@ -14,9 +14,10 @@ after(async () => {
 });
 
 /** Abre una página con red simulada y recoge errores de consola/página. */
-async function open(file, { viewport = { width: 1280, height: 800 }, failHosts = [], storage } = {}) {
+async function open(file, { viewport = { width: 1280, height: 800 }, failHosts = [], storage, onRequest } = {}) {
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
   const tiles = await mockNetwork(context, { failHosts });
+  if (onRequest) context.on("request", (r) => { if (!r.url().startsWith(srv.base)) onRequest(r.url()); });
   if (storage) await context.addInitScript((s) => { for (const k in s) localStorage.setItem(k, s[k]); }, storage);
   const page = await context.newPage();
   const errors = [];
@@ -213,9 +214,12 @@ test("OpenLayers: sólo la capa del mapa base activo está visible y las demás 
 });
 
 test("GeoExt: Ext JS + GeoExt cargan desde el CDN, 12 filas, búsqueda y popup de GeoExt", async () => {
-  const { page, context, tiles, errors } = await open("geoext-quito.html");
+  const external = [];
+  const { page, context, tiles, errors } = await open("geoext-quito.html", { onRequest: (u) => external.push(u) });
   await page.waitForSelector(".x-grid-item", { timeout: 15000 });
   assert.equal(await page.locator(".x-grid-item").count(), 12);
+  // Ext JS (456 MB en npm) y GeoExt se sirven desde vendor/: jsDelivr no puede entregarlos.
+  assert.deepEqual(external.filter((u) => /extjs|geoext/i.test(u)), [], "Ext JS/GeoExt no deben pedirse a un CDN");
   assert.ok(await page.evaluate(() => !!Ext.ClassManager.get("GeoExt.component.Map") && !!Ext.ClassManager.get("GeoExt.component.Popup")), "GeoExt no cargó");
   assert.ok(await waitTiles(tiles, (t) => /World_Street_Map\/MapServer\/tile\/13\/(\d+)\/(\d+)$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 4101) <= 6));
 
