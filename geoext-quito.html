@@ -1,1073 +1,293 @@
 <!doctype html>
-<html lang="es-EC" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Mapa interactivo de Quito con GeoExt, filtros, búsqueda y herramientas GIS."
-    />
-    <title>Quito GIS | GeoExt</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/ol@v10.1.0/ol.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://geoext.github.io/extjs-gpl/build/classic/theme-crisp/resources/theme-crisp-all.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg-1: #080c14;
-        --panel: rgba(10, 16, 30, 0.78);
-        --panel-solid: #0e1525;
-        --panel-border: rgba(255, 255, 255, 0.06);
-        --panel-hover: rgba(255, 255, 255, 0.08);
-        --text-1: #f0f4f8;
-        --text-2: #8899aa;
-        --text-3: #556677;
-        --accent: #6c5ce7;
-        --accent-glow: rgba(108, 92, 231, 0.4);
-        --accent-2: #00cec9;
-        --radius-sm: 12px;
-        --radius-xs: 8px;
-        --viewport-bg: #0b1220;
-        --section-bg: #0e1525;
-        --toolbar-bg: #111a2f;
-        --button-bg: #17233d;
-        --button-bg-active: #223154;
-        --button-border-active: #2e446f;
-        --input-bg: #121d33;
-        --input-border: #243451;
-        --grid-hover: #17233d;
-        --grid-hover-soft: rgba(151, 177, 219, 0.12);
-        --header-text: #b7c3d9;
-        --button-text: #c6d1e2;
-        --button-text-active: #f0f4f8;
-        --popup-bg: #111a2f;
-        --popup-border: #2a3b5f;
-        --popup-text: #e7eefb;
-        --popup-subtext: #9cb0d1;
-      }
-
-      [data-theme="light"] {
-        --bg-1: #eef3fb;
-        --panel: rgba(255, 255, 255, 0.82);
-        --panel-solid: #ffffff;
-        --panel-border: rgba(19, 40, 75, 0.12);
-        --panel-hover: rgba(19, 40, 75, 0.06);
-        --text-1: #1a2035;
-        --text-2: #4a5b74;
-        --text-3: #6d7f9a;
-        --viewport-bg: #e8eef8;
-        --section-bg: #ffffff;
-        --toolbar-bg: #f6f9ff;
-        --button-bg: #edf3ff;
-        --button-bg-active: #dbe8ff;
-        --button-border-active: #9eb8eb;
-        --input-bg: #ffffff;
-        --input-border: #bed0ee;
-        --grid-hover: #eaf2ff;
-        --grid-hover-soft: rgba(83, 130, 206, 0.18);
-        --header-text: #4a5b74;
-        --button-text: #3e5477;
-        --button-text-active: #1e2a44;
-        --popup-bg: #ffffff;
-        --popup-border: #bed0ee;
-        --popup-text: #1a2035;
-        --popup-subtext: #5f7290;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-      }
-
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: "Inter", system-ui, -apple-system, sans-serif;
-        color: var(--text-1);
-        background: var(--bg-1);
-      }
-
-      .poi-icon {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
-        text-align: center;
-        line-height: 20px;
-        margin-right: 8px;
-      }
-
-      .poi-icon.mirador {
-        background: rgba(0, 206, 201, 0.15);
-        color: #00cec9;
-      }
-      .poi-icon.cultura {
-        background: rgba(108, 92, 231, 0.15);
-        color: #6c5ce7;
-      }
-      .poi-icon.barrio {
-        background: rgba(253, 121, 168, 0.15);
-        color: #fd79a8;
-      }
-      .poi-icon.naturaleza {
-        background: rgba(0, 184, 148, 0.15);
-        color: #00b894;
-      }
-      .poi-icon.gastronomia {
-        background: rgba(254, 202, 87, 0.15);
-        color: #feca57;
-      }
-
-      .poi-type-badge {
-        display: inline-block;
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        font-weight: 600;
-        margin-left: 4px;
-      }
-
-      .poi-type-badge.mirador {
-        background: rgba(0, 206, 201, 0.15);
-        color: #00cec9;
-      }
-      .poi-type-badge.cultura {
-        background: rgba(108, 92, 231, 0.15);
-        color: #6c5ce7;
-      }
-      .poi-type-badge.barrio {
-        background: rgba(253, 121, 168, 0.15);
-        color: #fd79a8;
-      }
-      .poi-type-badge.naturaleza {
-        background: rgba(0, 184, 148, 0.15);
-        color: #00b894;
-      }
-      .poi-type-badge.gastronomia {
-        background: rgba(254, 202, 87, 0.15);
-        color: #feca57;
-      }
-
-      .x-viewport {
-        background: var(--viewport-bg) !important;
-      }
-
-      .x-panel,
-      .x-panel-body-default,
-      .x-grid-body,
-      .x-grid-view,
-      .x-box-inner {
-        background: var(--section-bg) !important;
-        color: var(--text-1) !important;
-      }
-
-      .x-panel-default {
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-panel-header-default {
-        background: var(--panel-solid) !important;
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-panel-header-title-default {
-        color: var(--text-1) !important;
-        font-weight: 600 !important;
-      }
-
-      .x-toolbar-default {
-        background: var(--toolbar-bg) !important;
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-btn-default-toolbar-small {
-        background: var(--button-bg) !important;
-        border-color: var(--panel-border) !important;
-        border-radius: var(--radius-xs) !important;
-      }
-
-      .x-btn-default-toolbar-small .x-btn-inner {
-        color: var(--button-text) !important;
-        font-weight: 600 !important;
-      }
-
-      .x-btn-default-toolbar-small:hover,
-      .x-btn-default-toolbar-small.x-btn-pressed {
-        background: var(--button-bg-active) !important;
-        border-color: var(--button-border-active) !important;
-        box-shadow: 0 0 0 1px var(--button-border-active) inset !important;
-      }
-
-      .x-btn-default-toolbar-small:hover .x-btn-inner,
-      .x-btn-default-toolbar-small.x-btn-pressed .x-btn-inner {
-        color: var(--button-text-active) !important;
-      }
-
-      .x-form-text-default {
-        background: var(--input-bg) !important;
-        border-color: var(--input-border) !important;
-        color: var(--text-1) !important;
-        border-radius: var(--radius-sm) !important;
-      }
-
-      .x-form-empty-field-default {
-        color: var(--text-3) !important;
-      }
-
-      .x-form-field,
-      .x-form-display-field,
-      .x-form-item-label,
-      .x-panel-body,
-      .x-panel-header-text-container-default,
-      .x-toolbar-text,
-      .x-tab-inner,
-      .x-window-header-text-default,
-      .x-message-box .x-window-header-text-default,
-      .x-message-box .x-box-mc,
-      .x-message-box .x-component-default,
-      .x-message-box .x-btn-inner-default-small,
-      .x-grid-with-row-lines .x-grid-cell-inner,
-      .x-grid-cell-inner,
-      .x-column-header-inner,
-      .x-boundlist-item {
-        color: var(--text-1) !important;
-      }
-
-      .x-mask-msg-text,
-      .x-tip-body-default,
-      .x-tip-body {
-        color: var(--text-1) !important;
-      }
-
-      .x-window-default,
-      .x-message-box {
-        background: var(--section-bg) !important;
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-message-box .x-toolbar-footer {
-        background: var(--toolbar-bg) !important;
-        border-top-color: var(--panel-border) !important;
-      }
-
-      .x-grid-item {
-        background: transparent !important;
-      }
-
-      .x-grid-item-over {
-        background: var(--grid-hover-soft) !important;
-      }
-
-      .x-grid-item-over .x-grid-cell,
-      .x-grid-item-over .x-grid-cell-inner,
-      .x-grid-item-selected .x-grid-cell,
-      .x-grid-item-selected .x-grid-cell-inner,
-      .x-grid-row-over .x-grid-cell-inner {
-        color: var(--text-1) !important;
-      }
-
-      .x-grid-cell {
-        color: var(--text-1) !important;
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-grid-header-ct,
-      .x-grid-header-ct .x-box-inner,
-      [id*="headercontainer-"][id$="-innerCt"] {
-        background: var(--toolbar-bg) !important;
-      }
-
-      .x-column-header,
-      .x-column-header-default {
-        background: var(--toolbar-bg) !important;
-        background-image: none !important;
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-column-header-text {
-        color: var(--header-text) !important;
-      }
-
-      .x-column-header-over,
-      .x-column-header-over .x-column-header-inner,
-      .x-column-header-over .x-column-header-text,
-      .x-column-header-over .x-column-header-trigger {
-        background: var(--grid-hover-soft) !important;
-        color: var(--text-1) !important;
-      }
-
-      .x-column-header-open,
-      .x-column-header-open .x-column-header-inner,
-      .x-column-header-focus,
-      .x-column-header-focus .x-column-header-inner,
-      .x-column-header-open .x-column-header-text,
-      .x-column-header-focus .x-column-header-text {
-        background: var(--toolbar-bg) !important;
-        background-image: none !important;
-        color: var(--text-1) !important;
-      }
-
-      .x-column-header-sort-ASC,
-      .x-column-header-sort-DESC,
-      .x-column-header-sort-ASC .x-column-header-inner,
-      .x-column-header-sort-DESC .x-column-header-inner,
-      .x-column-header-sort-ASC .x-column-header-text,
-      .x-column-header-sort-DESC .x-column-header-text,
-      .x-column-header-sort-ASC.x-column-header-over,
-      .x-column-header-sort-DESC.x-column-header-over,
-      .x-column-header-sort-ASC.x-column-header-over .x-column-header-inner,
-      .x-column-header-sort-DESC.x-column-header-over .x-column-header-inner {
-        background: var(--toolbar-bg) !important;
-        background-image: none !important;
-        color: var(--text-1) !important;
-      }
-
-      .x-column-header-trigger,
-      .x-column-header-sort-ASC,
-      .x-column-header-sort-DESC {
-        opacity: 0.95 !important;
-        filter: brightness(1.35) contrast(1.1);
-      }
-
-      .x-menu,
-      .x-menu-body,
-      .x-boundlist {
-        background: var(--section-bg) !important;
-        border-color: var(--panel-border) !important;
-      }
-
-      .x-menu-item-text,
-      .x-menu-item-icon,
-      .x-menu-item-arrow,
-      .x-menu-item-link,
-      .x-boundlist-item {
-        color: var(--text-1) !important;
-      }
-
-      .x-menu-item-active {
-        background: var(--grid-hover-soft) !important;
-      }
-
-      .x-splitter {
-        background: var(--panel-border) !important;
-      }
-
-      .x-panel-header-default .x-tool-img {
-        background: none !important;
-        color: var(--text-2) !important;
-        font-family: "Font Awesome 6 Free" !important;
-        font-weight: 900 !important;
-        text-indent: 0 !important;
-        line-height: 16px !important;
-        font-size: 12px !important;
-      }
-
-      .x-tool-collapse-left::before,
-      .x-tool-expand-right::before {
-        content: "\f053";
-      }
-
-      .x-tool-collapse-right::before,
-      .x-tool-expand-left::before {
-        content: "\f054";
-      }
-
-      .x-tool-collapse-top::before,
-      .x-tool-expand-bottom::before {
-        content: "\f078";
-      }
-
-      .x-tool-collapse-bottom::before,
-      .x-tool-expand-top::before {
-        content: "\f077";
-      }
-
-      .x-tool-over .x-tool-img {
-        color: var(--button-text-active) !important;
-      }
-
-      .map-popup {
-        background: var(--popup-bg);
-        border: 1px solid var(--popup-border);
-        border-radius: 10px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-        color: var(--popup-text);
-        min-width: 200px;
-      }
-
-      .map-popup-body {
-        padding: 10px;
-        color: var(--popup-text);
-      }
-
-      .map-popup-sub {
-        color: var(--popup-subtext);
-      }
-    </style>
-  </head>
-
-  <body>
-    <script src="https://cdn.jsdelivr.net/npm/ol@v10.1.0/dist/ol.js"></script>
-    <script src="https://geoext.github.io/extjs-gpl/build/ext-all.js"></script>
-    <script>
-      var QUITO = [-78.52495, -0.22985];
-      var ZOOM_INICIAL = 13;
-
-      var typeColors = {
-        mirador: "#00cec9",
-        cultura: "#6c5ce7",
-        barrio: "#fd79a8",
-        naturaleza: "#00b894",
-        gastronomia: "#feca57",
-      };
-
-      var puntosTuristicos = [
-        {
-          lonlat: [-78.45556, -0.00222],
-          nombre: "Mitad del Mundo",
-          descripcion:
-            "Monumento que marca la línea ecuatorial. Uno de los sitios más visitados del país.",
-          tipo: "cultura",
-          icon: "fa-landmark",
-        },
-        {
-          lonlat: [-78.50833, -0.21861],
-          nombre: "Centro Histórico",
-          descripcion:
-            "Corazón colonial de Quito con iglesias, plazas y museos declarados Patrimonio de la Humanidad.",
-          tipo: "cultura",
-          icon: "fa-landmark",
-        },
-        {
-          lonlat: [-78.54056, -0.20194],
-          nombre: "Teleférico de Quito",
-          descripcion:
-            "Teleférico que asciende al volcán Pichincha a más de 4000 msnm con vistas panorámicas.",
-          tipo: "mirador",
-          icon: "fa-mountain-sun",
-        },
-        {
-          lonlat: [-78.51861, -0.22861],
-          nombre: "El Panecillo",
-          descripcion:
-            "Colina con la icónica estatua de la Virgen de Quito y una vista de 360 grados de la capital.",
-          tipo: "mirador",
-          icon: "fa-mountain-sun",
-        },
-        {
-          lonlat: [-78.49417, -0.21306],
-          nombre: "La Mariscal",
-          descripcion:
-            "Barrio bohemio y cultural, famoso por su vida nocturna, galerías de arte y restaurantes.",
-          tipo: "barrio",
-          icon: "fa-city",
-        },
-        {
-          lonlat: [-78.5167, -0.25],
-          nombre: "Parque Metropolitano Guangüiltagua",
-          descripcion:
-            "El bosque protector más grande de Quito con 557 hectáreas de flora nativa y senderos.",
-          tipo: "naturaleza",
-          icon: "fa-leaf",
-        },
-        {
-          lonlat: [-78.4708, -0.1807],
-          nombre: "Parque La Carolina",
-          descripcion:
-            "Pulmon verde del norte de Quito con jardines, lagos, ciclovias y el Jardín Botánico.",
-          tipo: "naturaleza",
-          icon: "fa-leaf",
-        },
-        {
-          lonlat: [-78.505, -0.22],
-          nombre: "La Ronda",
-          descripcion:
-            "Callejón colonial restaurado con artesanos, gastronomía tradicional y vida nocturna cultural.",
-          tipo: "gastronomia",
-          icon: "fa-utensils",
-        },
-        {
-          lonlat: [-78.51, -0.215],
-          nombre: "Plaza Foch",
-          descripcion:
-            "Centro gastronómico y de entretenimiento con restaurantes internacionales y cocina fusión.",
-          tipo: "gastronomia",
-          icon: "fa-utensils",
-        },
-        {
-          lonlat: [-78.5113, -0.1923],
-          nombre: "Parque Itchimbia",
-          descripcion:
-            "Mirador natural con vista panorámica del Centro Histórico y el cerro del Panecillo.",
-          tipo: "mirador",
-          icon: "fa-mountain-sun",
-        },
-        {
-          lonlat: [-78.5076, -0.2198],
-          nombre: "Iglesia de la Compañía",
-          descripcion:
-            "Joyita barroca con interior recubierto de oro, considerada la más bella de Latinoamérica.",
-          tipo: "cultura",
-          icon: "fa-landmark",
-        },
-        {
-          lonlat: [-78.5097, -0.2214],
-          nombre: "Barrio San Marcos",
-          descripcion:
-            "Barrio patrimonial emergente con galerías de arte contemporáneo y cafeterías especializadas.",
-          tipo: "barrio",
-          icon: "fa-city",
-        },
-      ];
-
-      Ext.application({
-        name: "QuitoGIS",
-        launch: function () {
-          var view = new ol.View({
-            center: ol.proj.fromLonLat(QUITO),
-            zoom: ZOOM_INICIAL,
-            minZoom: 10,
-            maxZoom: 19,
-          });
-
-          var osmLayer = new ol.layer.Tile({
-            source: new ol.source.OSM(),
-            visible: false,
-          });
-
-          var cartoDarkLayer = new ol.layer.Tile({
-            source: new ol.source.XYZ({
-              url: "https://{a-d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
-              attributions: "&copy; OSM &copy; CARTO",
-            }),
-            visible: true,
-          });
-
-          var cartoLightLayer = new ol.layer.Tile({
-            source: new ol.source.XYZ({
-              url: "https://{a-d}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-              attributions: "&copy; OSM &copy; CARTO",
-            }),
-            visible: false,
-          });
-
-          function createMarkerStyle(type) {
-            var color = typeColors[type] || "#6c5ce7";
-            var svg =
-              '<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">' +
-              '<path d="M15 0C6.72 0 0 6.72 0 15c0 11.25 15 25 15 25s15-13.75 15-25C30 6.72 23.28 0 15 0z" fill="' +
-              color +
-              '"/>' +
-              '<circle cx="15" cy="14" r="6" fill="white"/>' +
-              "</svg>";
-            return new ol.style.Style({
-              image: new ol.style.Icon({
-                src:
-                  "data:image/svg+xml;charset=utf-8," +
-                  encodeURIComponent(svg),
-                anchor: [0.5, 1],
-                scale: 1,
-              }),
-            });
-          }
-
-          var vectorSource = new ol.source.Vector();
-          var vectorLayer = new ol.layer.Vector({ source: vectorSource });
-
-          var allFeatures = [];
-          puntosTuristicos.forEach(function (p) {
-            var feature = new ol.Feature({
-              geometry: new ol.geom.Point(ol.proj.fromLonLat(p.lonlat)),
-              nombre: p.nombre,
-              descripcion: p.descripcion,
-              tipo: p.tipo,
-              icon: p.icon,
-              lonlat: p.lonlat,
-            });
-            feature.setStyle(createMarkerStyle(p.tipo));
-            allFeatures.push(feature);
-            vectorSource.addFeature(feature);
-          });
-
-          var olMap = new ol.Map({
-            layers: [cartoDarkLayer, cartoLightLayer, osmLayer, vectorLayer],
-            view: view,
-            controls: [
-              new ol.control.Zoom(),
-              new ol.control.Attribution(),
-              new ol.control.ScaleLine({ units: "metric" }),
-            ],
-          });
-
-          var hasGeoExtMap = !!Ext.ClassManager.get("GeoExt.component.Map");
-          var hasGeoExtPopup = !!Ext.ClassManager.get("GeoExt.component.Popup");
-          var mapComponent = null;
-          var geoExtPopup = null;
-          var olPopupOverlay = null;
-          var olPopupEl = null;
-
-          if (hasGeoExtMap) {
-            mapComponent = Ext.create("GeoExt.component.Map", {
-              map: olMap,
-              pointerRest: true,
-              pointerRestInterval: 750,
-              pointerRestPixelTolerance: 5,
-            });
-          } else {
-            mapComponent = Ext.create("Ext.Component", {
-              html:
-                '<div id="ol-map-fallback" style="width:100%;height:100%;"></div>',
-              listeners: {
-                afterrender: function () {
-                  olMap.setTarget("ol-map-fallback");
-                },
-              },
-            });
-          }
-
-          if (hasGeoExtPopup) {
-            geoExtPopup = Ext.create("GeoExt.component.Popup", {
-              map: olMap,
-              width: 220,
-            });
-          } else {
-            olPopupEl = document.createElement("div");
-            olPopupEl.className = "map-popup";
-            olPopupEl.style.minWidth = "180px";
-            olPopupEl.style.display = "none";
-            document.body.appendChild(olPopupEl);
-
-            olPopupOverlay = new ol.Overlay({
-              element: olPopupEl,
-              positioning: "bottom-center",
-              offset: [0, -12],
-              stopEvent: false,
-            });
-            olMap.addOverlay(olPopupOverlay);
-          }
-
-          function setPopup(html, coord) {
-            if (geoExtPopup) {
-              geoExtPopup.setHtml(html);
-              geoExtPopup.position(coord);
-              geoExtPopup.show();
-              return;
-            }
-            if (olPopupEl && olPopupOverlay) {
-              olPopupEl.innerHTML = html;
-              olPopupEl.style.display = "block";
-              olPopupOverlay.setPosition(coord);
-            }
-          }
-
-          function hidePopup() {
-            if (geoExtPopup) {
-              geoExtPopup.hide();
-              return;
-            }
-            if (olPopupEl && olPopupOverlay) {
-              olPopupEl.style.display = "none";
-              olPopupOverlay.setPosition(undefined);
-            }
-          }
-
-          mapComponent.on("pointerrest", function (evt) {
-            var coord = evt.coordinate;
-            var lonlat = ol.proj.toLonLat(coord);
-            setPopup(
-              "<div class='map-popup-body'><strong>Coordenadas:</strong><br>" +
-                lonlat[1].toFixed(5) +
-                ", " +
-                lonlat[0].toFixed(5) +
-                "</div>",
-              coord
-            );
-          });
-
-          mapComponent.on("pointerrestout", function () {
-            hidePopup();
-          });
-
-          // Panel del mapa
-          var mapPanel = Ext.create("Ext.panel.Panel", {
-            title: "Mapa de Quito - GeoExt + OpenLayers",
-            region: "center",
-            layout: "fit",
-            items: [mapComponent],
-          });
-
-          // Store para los puntos
-          var poiStore = Ext.create("Ext.data.Store", {
-            fields: ["nombre", "descripcion", "tipo", "icon", "lonlat"],
-            data: puntosTuristicos,
-          });
-
-          // Grid de puntos de interés
-          var poiGrid = Ext.create("Ext.grid.Panel", {
-            title: "Puntos de Interés (" + puntosTuristicos.length + ")",
-            store: poiStore,
-            flex: 1,
-            columns: [
-              {
-                text: "Nombre",
-                dataIndex: "nombre",
-                flex: 1,
-                renderer: function (value, meta, record) {
-                  var tipo = record.get("tipo");
-                  var icon = record.get("icon");
-                  return (
-                    '<span class="poi-icon ' +
-                    tipo +
-                    '"><i class="fas ' +
-                    icon +
-                    '"></i></span>' +
-                    value +
-                    '<span class="poi-type-badge ' +
-                    tipo +
-                    '">' +
-                    tipo +
-                    "</span>"
-                  );
-                },
-              },
-            ],
-            listeners: {
-              itemclick: function (grid, record) {
-                var lonlat = record.get("lonlat");
-                olMap.getView().animate({
-                  center: ol.proj.fromLonLat(lonlat),
-                  zoom: 15,
-                  duration: 500,
-                });
-
-                // Mostrar popup
-                setTimeout(function () {
-                  var coord = ol.proj.fromLonLat(lonlat);
-                  setPopup(
-                    "<div class='map-popup-body'>" +
-                      "<strong>" +
-                      record.get("nombre") +
-                      "</strong><br>" +
-                      "<small class='map-popup-sub'>" +
-                      record.get("descripcion") +
-                      "</small>" +
-                      "</div>",
-                    coord
-                  );
-                }, 600);
-              },
-            },
-          });
-
-          // Campo de búsqueda
-          var searchField = Ext.create("Ext.form.field.Text", {
-            emptyText: "Buscar puntos de interés...",
-            enableKeyEvents: true,
-            listeners: {
-              keyup: function (field) {
-                var value = field.getValue().toLowerCase();
-                poiStore.clearFilter();
-                if (value) {
-                  poiStore.filterBy(function (record) {
-                    var nombre = record.get("nombre").toLowerCase();
-                    var desc = record.get("descripcion").toLowerCase();
-                    return nombre.indexOf(value) > -1 || desc.indexOf(value) > -1;
-                  });
-                }
-              },
-            },
-          });
-
-          // Filtros por categoría
-          var filterButtons = [
-            {
-              text: "Todos",
-              tipo: "all",
-              pressed: true,
-              toggleGroup: "tipo",
-            },
-            {
-              text: '<i class="fas fa-mountain-sun"></i> Miradores',
-              tipo: "mirador",
-              toggleGroup: "tipo",
-            },
-            {
-              text: '<i class="fas fa-landmark"></i> Cultura',
-              tipo: "cultura",
-              toggleGroup: "tipo",
-            },
-            {
-              text: '<i class="fas fa-city"></i> Barrios',
-              tipo: "barrio",
-              toggleGroup: "tipo",
-            },
-            {
-              text: '<i class="fas fa-leaf"></i> Naturaleza',
-              tipo: "naturaleza",
-              toggleGroup: "tipo",
-            },
-            {
-              text: '<i class="fas fa-utensils"></i> Gastronomía',
-              tipo: "gastronomia",
-              toggleGroup: "tipo",
-            },
-          ];
-
-          var toolbar = Ext.create("Ext.toolbar.Toolbar", {
-            items: filterButtons.map(function (btn) {
-              return {
-                text: btn.text,
-                enableToggle: true,
-                pressed: btn.pressed || false,
-                toggleGroup: btn.toggleGroup,
-                handler: function () {
-                  var tipo = btn.tipo;
-                  poiStore.clearFilter();
-                  vectorSource.clear();
-
-                  if (tipo === "all") {
-                    allFeatures.forEach(function (f) {
-                      vectorSource.addFeature(f);
-                    });
-                  } else {
-                    poiStore.filterBy(function (record) {
-                      return record.get("tipo") === tipo;
-                    });
-                    allFeatures.forEach(function (f) {
-                      if (f.get("tipo") === tipo) {
-                        vectorSource.addFeature(f);
-                      }
-                    });
-                  }
-                },
-              };
-            }),
-          });
-
-          function applyTheme(theme) {
-            document.documentElement.setAttribute("data-theme", theme);
-            try {
-              localStorage.setItem("quito-gis-theme", theme);
-            } catch (e) {}
-          }
-
-          var storedTheme = "dark";
-          try {
-            storedTheme = localStorage.getItem("quito-gis-theme") || "dark";
-          } catch (e) {}
-          applyTheme(storedTheme);
-
-          // Herramientas
-          var toolsPanel = Ext.create("Ext.panel.Panel", {
-            title: "Herramientas",
-            collapsible: true,
-            collapsed: true,
-            layout: "fit",
-            height: 150,
-            items: [
-              {
-                xtype: "toolbar",
-                dock: "top",
-                items: [
-                  {
-                    text: '<i class="fas fa-crosshairs"></i> Centrar',
-                    handler: function () {
-                      olMap.getView().animate({
-                        center: ol.proj.fromLonLat(QUITO),
-                        zoom: ZOOM_INICIAL,
-                        duration: 500,
-                      });
-                    },
-                  },
-                  {
-                    text: '<i class="fas fa-location-crosshairs"></i> Mi ubicación',
-                    handler: function () {
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(function (
-                          pos
-                        ) {
-                          var lonlat = [
-                            pos.coords.longitude,
-                            pos.coords.latitude,
-                          ];
-                          olMap.getView().animate({
-                            center: ol.proj.fromLonLat(lonlat),
-                            zoom: 15,
-                            duration: 500,
-                          });
-                        });
-                      }
-                    },
-                  },
-                  {
-                    xtype: "tbseparator",
-                  },
-                  "->",
-                  {
-                    text: "Dark",
-                    enableToggle: true,
-                    pressed: true,
-                    toggleGroup: "basemap",
-                    handler: function () {
-                      cartoDarkLayer.setVisible(true);
-                      cartoLightLayer.setVisible(false);
-                      osmLayer.setVisible(false);
-                    },
-                  },
-                  {
-                    text: "Light",
-                    enableToggle: true,
-                    toggleGroup: "basemap",
-                    handler: function () {
-                      cartoDarkLayer.setVisible(false);
-                      cartoLightLayer.setVisible(true);
-                      osmLayer.setVisible(false);
-                    },
-                  },
-                  {
-                    text: "OSM",
-                    enableToggle: true,
-                    toggleGroup: "basemap",
-                    handler: function () {
-                      cartoDarkLayer.setVisible(false);
-                      cartoLightLayer.setVisible(false);
-                      osmLayer.setVisible(true);
-                    },
-                  },
-                ],
-              },
-            ],
-          });
-
-          // Panel lateral
-          var sidePanel = Ext.create("Ext.panel.Panel", {
-            title: "Quito GIS - Puntos Turísticos",
-            region: "west",
-            width: 400,
-            split: true,
-            collapsible: true,
-            dockedItems: [
-              {
-                xtype: "toolbar",
-                dock: "top",
-                items: [
-                  "->",
-                  {
-                    text: '<i class="fas fa-moon"></i> Tema',
-                    itemId: "themeToggleBtn",
-                    handler: function (btn) {
-                      var current =
-                        document.documentElement.getAttribute("data-theme") ||
-                        "dark";
-                      var next = current === "dark" ? "light" : "dark";
-                      applyTheme(next);
-                      btn.setText(
-                        next === "dark"
-                          ? '<i class="fas fa-moon"></i> Tema'
-                          : '<i class="fas fa-sun"></i> Tema'
-                      );
-                    },
-                  },
-                ],
-              },
-            ],
-            layout: {
-              type: "vbox",
-              align: "stretch",
-            },
-            items: [
-              {
-                xtype: "panel",
-                title: "Búsqueda",
-                bodyPadding: 10,
-                items: [searchField],
-              },
-              {
-                xtype: "panel",
-                title: "Categorías",
-                items: [toolbar],
-              },
-              toolsPanel,
-              poiGrid,
-            ],
-          });
-
-          // Viewport principal
-          Ext.create("Ext.container.Viewport", {
-            layout: "border",
-            items: [mapPanel, sidePanel],
-          });
-
-          var themeBtn = sidePanel.down("#themeToggleBtn");
-          if (themeBtn) {
-            themeBtn.setText(
-              storedTheme === "dark"
-                ? '<i class="fas fa-moon"></i> Tema'
-                : '<i class="fas fa-sun"></i> Tema'
-            );
-          }
-
-          // Click en el mapa para mostrar info de features
-          olMap.on("click", function (evt) {
-            var feature = olMap.forEachFeatureAtPixel(
-              evt.pixel,
-              function (f) {
-                return f;
-              }
-            );
-            if (feature) {
-              var nombre = feature.get("nombre");
-              var descripcion = feature.get("descripcion");
-              var tipo = feature.get("tipo");
-              var lonlat = feature.get("lonlat");
-
-              setPopup(
-                "<div class='map-popup-body'>" +
-                  "<span class='poi-type-badge " +
-                  tipo +
-                  "'>" +
-                  tipo +
-                  "</span><br>" +
-                  "<strong>" +
-                  nombre +
-                  "</strong><br>" +
-                  "<small class='map-popup-sub'>" +
-                  descripcion +
-                  "</small><br>" +
-                  "<small class='map-popup-sub'>Lat: " +
-                  lonlat[1].toFixed(5) +
-                  " | Lng: " +
-                  lonlat[0].toFixed(5) +
-                  "</small>" +
-                  "</div>",
-                evt.coordinate
-              );
-            }
-          });
-
-          // Sin alerta de inicio para no interrumpir la experiencia.
-        },
+<html lang="es-EC">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Visor de puntos turísticos de Quito con GeoExt (Ext JS + OpenLayers): componentes de interfaz ricos sobre un mapa OpenLayers." />
+<title>Quito GIS | GeoExt</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@10.4.0/ol.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/extjs-gpl@6.2.0/build/classic/theme-crisp/resources/theme-crisp-all.css" />
+<link rel="stylesheet" href="assets/quito.css" />
+<link rel="stylesheet" href="assets/quito-geoext.css" />
+</head>
+<body class="gx">
+<noscript>Este visor necesita JavaScript.</noscript>
+
+<script src="https://cdn.jsdelivr.net/npm/ol@10.4.0/dist/ol.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/extjs-gpl@6.2.0/build/ext-all.js"></script>
+<script src="assets/quito-core.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = QuitoCore;
+
+  if (!window.Ext || !window.ol) {
+    document.body.innerHTML = '<p style="padding:24px;font-family:sans-serif">No se pudieron cargar Ext JS u OpenLayers desde el CDN. Revise la conexión y recargue.</p>';
+    return;
+  }
+
+  /* Ext.Loader descarga las clases de GeoExt (paquete npm @geoext/geoext) bajo demanda. */
+  Ext.Loader.setConfig({
+    enabled: true,
+    disableCaching: false,
+    paths: { GeoExt: "https://cdn.jsdelivr.net/npm/@geoext/geoext@7.0.1/src" },
+  });
+  Ext.require(["GeoExt.component.Map", "GeoExt.component.Popup"]);
+
+  var NAV = [
+    ["index.html", "Inicio"], ["leaflet-quito.html", "Leaflet"], ["maplibre-quito.html", "MapLibre GL"],
+    ["openlayers-quito.html", "OpenLayers"], ["geoext-quito.html", "GeoExt"],
+  ];
+
+  Ext.onReady(function () {
+    var fromLonLat = ol.proj.fromLonLat, toLonLat = ol.proj.toLonLat;
+
+    /* ---------- mapa OpenLayers ---------- */
+    var view = new ol.View({ center: fromLonLat([C.CENTER.lng, C.CENTER.lat]), zoom: C.ZOOM, minZoom: C.MIN_ZOOM, maxZoom: C.MAX_ZOOM });
+    var olMap = new ol.Map({ view: view, controls: [new ol.control.Zoom(), new ol.control.Attribution({ collapsible: false }), new ol.control.ScaleLine({ units: "metric" })] });
+
+    var baseLayers = {}, activeBase = null, basemapId = null, tileStats = {};
+    function baseLayer(def) {
+      if (baseLayers[def.id]) return baseLayers[def.id];
+      var source = new ol.source.XYZ({ url: def.url, maxZoom: def.maxNativeZoom, attributions: def.attribution, crossOrigin: "anonymous" });
+      var stats = (tileStats[def.id] = { ok: 0, err: 0 });
+      source.on("tileloadend", function () { stats.ok++; });
+      source.on("tileloaderror", function () {
+        stats.err++;
+        if (def.id === basemapId && !stats.ok && stats.err >= 3 && def.id !== C.FALLBACK_BASEMAP) {
+          setStatus("«" + def.label + "» no responde. Se cambió a OpenStreetMap.");
+          basemapCombo.setValue(C.FALLBACK_BASEMAP);
+        }
       });
-    </script>
-  </body>
+      var layer = new ol.layer.Tile({ source: source, visible: false });
+      olMap.getLayers().insertAt(0, layer);
+      return (baseLayers[def.id] = layer);
+    }
+    function setBasemap(id) {
+      var def = C.basemapById(id) || C.basemapById(C.DEFAULT_BASEMAP);
+      if (activeBase) activeBase.setVisible(false);
+      basemapId = def.id;
+      activeBase = baseLayer(def);
+      activeBase.setVisible(true);
+    }
+
+    var visibleIds = new Set(C.POIS.map(function (p) { return p.id; }));
+    var selectedId = null, byId = {}, styleCache = {};
+    function pointStyle(tipo, selected) {
+      var key = tipo + (selected ? "*" : "");
+      return styleCache[key] || (styleCache[key] = new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: selected ? 11 : 8,
+          fill: new ol.style.Fill({ color: C.categoryById(tipo).color }),
+          stroke: new ol.style.Stroke({ color: selected ? "#007ac2" : "#ffffff", width: 2 }),
+        }),
+      }));
+    }
+    var poiLayer = new ol.layer.Vector({
+      source: new ol.source.Vector({
+        features: C.POIS.map(function (p) {
+          byId[p.id] = p;
+          var f = new ol.Feature({ geometry: new ol.geom.Point(fromLonLat([p.lng, p.lat])), tipo: p.tipo });
+          f.setId(p.id);
+          return f;
+        }),
+      }),
+      style: function (f) { return visibleIds.has(f.getId()) ? pointStyle(f.get("tipo"), f.getId() === selectedId) : null; },
+    });
+    olMap.addLayer(poiLayer);
+
+    var measureSource = new ol.source.Vector();
+    olMap.addLayer(new ol.layer.Vector({
+      source: measureSource,
+      style: function (f) {
+        return f.getGeometry().getType() === "LineString"
+          ? [new ol.style.Style({ stroke: new ol.style.Stroke({ color: "rgba(255,255,255,.9)", width: 6 }) }), new ol.style.Style({ stroke: new ol.style.Stroke({ color: "#d83020", width: 3 }) })]
+          : new ol.style.Style({ image: new ol.style.Circle({ radius: 4, fill: new ol.style.Fill({ color: "#fff" }), stroke: new ol.style.Stroke({ color: "#d83020", width: 2 }) }) });
+      },
+    }));
+    var dblZoom = olMap.getInteractions().getArray().filter(function (i) { return i instanceof ol.interaction.DoubleClickZoom; })[0];
+
+    /* ---------- componentes GeoExt ---------- */
+    var mapComponent = Ext.create("GeoExt.component.Map", { map: olMap, pointerRest: true, pointerRestInterval: 600, pointerRestPixelTolerance: 4 });
+    var popup = Ext.create("GeoExt.component.Popup", { map: olMap, cls: "gx-popup qp-box", width: 300, html: "" });
+    function closePopup() { popup.position(undefined); setSelected(null); }
+    function openPoi(poi) {
+      popup.update(C.popupHtml(poi));
+      popup.position(fromLonLat([poi.lng, poi.lat]));
+      setSelected(poi.id);
+    }
+    function setSelected(id) {
+      selectedId = id;
+      poiLayer.changed();
+      var rec = id ? poiStore.getById(id) : null;
+      if (rec) grid.getSelectionModel().select(rec, false, true); else grid.getSelectionModel().deselectAll(true);
+    }
+
+    /* ---------- datos de la interfaz ---------- */
+    var poiStore = Ext.create("Ext.data.Store", {
+      fields: ["id", "nombre", "descripcion", "tipo", "lng", "lat"],
+      idProperty: "id",
+      data: C.POIS,
+    });
+    var query = "", cats = new Set(C.CATEGORIES.map(function (c) { return c.id; }));
+
+    function applyFilter() {
+      var ok = new Set(C.filterPois(C.POIS, { query: query, categories: cats }).map(function (p) { return p.id; }));
+      poiStore.clearFilter(true);
+      poiStore.filterBy(function (r) { return ok.has(r.getId()); });
+      visibleIds = ok;
+      poiLayer.changed();
+      grid.setTitle("Puntos de interés (" + ok.size + ")");
+      if (selectedId && !ok.has(selectedId)) closePopup();
+    }
+
+    var searchField = Ext.create("Ext.form.field.Text", {
+      emptyText: "Buscar por nombre o descripción",
+      anchor: "100%",
+      enableKeyEvents: true,
+      triggers: { clear: { cls: "x-form-clear-trigger", hidden: true, handler: function (f) { f.setValue(""); } } },
+      listeners: {
+        change: function (f, v) { query = v || ""; f.getTrigger("clear").setHidden(!v); applyFilter(); },
+      },
+    });
+
+    var catChecks = C.CATEGORIES.map(function (c) {
+      return {
+        xtype: "checkboxfield",
+        boxLabel: '<span class="dot" style="background:' + c.color + '"></span>' + c.label,
+        checked: true,
+        inputValue: c.id,
+        listeners: { change: function (cb, on) { if (on) cats.add(c.id); else cats.delete(c.id); applyFilter(); } },
+      };
+    });
+
+    var basemapCombo = Ext.create("Ext.form.field.ComboBox", {
+      fieldLabel: "Mapa base",
+      labelAlign: "top",
+      editable: false,
+      queryMode: "local",
+      displayField: "label",
+      valueField: "id",
+      store: Ext.create("Ext.data.Store", { fields: ["id", "label"], data: C.BASEMAPS }),
+      value: C.DEFAULT_BASEMAP,
+      listeners: { change: function (cmb, v) { setBasemap(v); try { localStorage.setItem("quito-gis-basemap", v); } catch (e) {} } },
+    });
+    try { var saved = localStorage.getItem("quito-gis-basemap"); if (C.basemapById(saved)) basemapCombo.setValue(saved); } catch (e) {}
+
+    /* Medición */
+    var measuring = false, measurePts = [];
+    var measureLabel = Ext.create("Ext.toolbar.TextItem", { text: "Distancia: —" });
+    function drawMeasure() {
+      measureSource.clear();
+      var coords = measurePts.map(function (p) { return fromLonLat(p); });
+      if (coords.length > 1) measureSource.addFeature(new ol.Feature(new ol.geom.LineString(coords)));
+      coords.forEach(function (c) { measureSource.addFeature(new ol.Feature(new ol.geom.Point(c))); });
+      measureLabel.setText("Distancia: " + (measurePts.length > 1 ? C.formatDistance(C.pathLength(measurePts)) : "—"));
+    }
+    function setMeasuring(on) {
+      measuring = on;
+      if (dblZoom) dblZoom.setActive(!on);
+      measureBtn.toggle(on, true);
+      if (on) closePopup();
+    }
+    var measureBtn = Ext.create("Ext.button.Button", {
+      text: "Medir distancia", enableToggle: true,
+      toggleHandler: function (b, on) { if (on) { measurePts = []; drawMeasure(); } setMeasuring(on); },
+    });
+
+    /* ---------- eventos del mapa ---------- */
+    olMap.on("click", function (e) {
+      var ll = toLonLat(e.coordinate);
+      if (measuring) {
+        var last = measurePts[measurePts.length - 1];
+        if (!last || C.haversine(last, ll) >= 1) { measurePts.push(ll); drawMeasure(); }
+        return;
+      }
+      var hit = olMap.forEachFeatureAtPixel(e.pixel, function (f) { return f; }, { layerFilter: function (l) { return l === poiLayer; } });
+      if (hit) openPoi(byId[hit.getId()]);
+    });
+    olMap.on("dblclick", function () { if (measuring) setMeasuring(false); });
+
+    var coordText = Ext.create("Ext.toolbar.TextItem", { text: "Lon — Lat —" });
+    var scaleText = Ext.create("Ext.toolbar.TextItem", { text: "" });
+    var statusText = Ext.create("Ext.toolbar.TextItem", { text: "" });
+    var statusTimer;
+    function setStatus(msg) { statusText.setText(msg); clearTimeout(statusTimer); statusTimer = setTimeout(function () { statusText.setText(""); }, 5000); }
+    olMap.on("pointermove", function (e) {
+      if (e.dragging) return;
+      var ll = toLonLat(e.coordinate);
+      coordText.setText("Lon " + C.formatCoord(ll[0], 5) + "  Lat " + C.formatCoord(ll[1], 5));
+      olMap.getTargetElement().style.cursor = measuring ? "crosshair" : olMap.hasFeatureAtPixel(e.pixel, { layerFilter: function (l) { return l === poiLayer; } }) ? "pointer" : "";
+    });
+    function updateScale() {
+      var c = toLonLat(view.getCenter());
+      scaleText.setText("Escala " + C.formatScale(view.getZoom(), c[1]) + "   Zoom " + view.getZoom().toFixed(1));
+    }
+    olMap.on("moveend", updateScale);
+    // Evento propio de GeoExt: el puntero "descansa" sobre el mapa.
+    mapComponent.on("pointerrest", function (evt) {
+      var hit = olMap.forEachFeatureAtPixel(evt.pixel, function (f) { return f; }, { layerFilter: function (l) { return l === poiLayer; } });
+      if (hit) setStatus(byId[hit.getId()].nombre);
+    });
+
+    /* ---------- cuadrícula de resultados ---------- */
+    var grid = Ext.create("Ext.grid.Panel", {
+      title: "Puntos de interés (" + C.POIS.length + ")",
+      flex: 1,
+      store: poiStore,
+      hideHeaders: true,
+      forceFit: true,
+      emptyText: "Ningún punto coincide con la búsqueda o el filtro.",
+      viewConfig: { deferEmptyText: false, enableTextSelection: false },
+      columns: [{
+        dataIndex: "nombre", flex: 1, sortable: false, menuDisabled: true,
+        renderer: function (v, meta, r) {
+          var cat = C.categoryById(r.get("tipo"));
+          return '<div class="gx-row"><span class="dot" style="background:' + cat.color + '"></span><div><div class="result-title">' +
+            C.escapeHtml(v) + '</div><div class="result-cat">' + cat.label + "</div></div></div>";
+        },
+      }],
+      listeners: {
+        select: function (sm, rec, idx) { /* sólo marca; el vuelo se hace con itemclick */ },
+        itemclick: function (g, rec) {
+          var poi = byId[rec.getId()];
+          view.animate({ center: fromLonLat([poi.lng, poi.lat]), zoom: Math.max(view.getZoom(), 15), duration: 800 });
+          openPoi(poi);
+        },
+      },
+    });
+
+    /* ---------- composición ---------- */
+    var header = Ext.create("Ext.Component", {
+      region: "north", height: 48, cls: "header",
+      html: '<a class="brand" href="index.html"><svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg><span class="brand-name">Quito GIS</span></a>' +
+        '<span class="brand-lib">GeoExt 7.0.1 · Ext JS 6.2 GPL · OpenLayers 10.4</span>' +
+        '<nav class="nav">' + NAV.map(function (n) { return '<a href="' + n[0] + '"' + (n[1] === "GeoExt" ? ' aria-current="page"' : "") + ">" + n[1] + "</a>"; }).join("") + "</nav>",
+    });
+
+    var side = Ext.create("Ext.panel.Panel", {
+      region: "west", width: 340, split: true, title: "Capas y herramientas", collapsible: true,
+      layout: { type: "vbox", align: "stretch" },
+      items: [
+        { xtype: "container", padding: 12, layout: "anchor", items: [searchField] },
+        { xtype: "fieldset", title: "Categorías", margin: "0 12 8 12", padding: "4 8", defaults: { anchor: "100%" }, items: catChecks },
+        { xtype: "container", padding: "0 12 8 12", layout: "anchor", items: [basemapCombo] },
+        { xtype: "toolbar", items: [measureBtn, { text: "Inicio", handler: function () { view.animate({ center: fromLonLat([C.CENTER.lng, C.CENTER.lat]), zoom: C.ZOOM, duration: 800 }); } }, "->", { text: "Borrar", handler: function () { measurePts = []; drawMeasure(); } }] },
+        grid,
+      ],
+    });
+
+    var center = Ext.create("Ext.panel.Panel", {
+      region: "center", layout: "fit", border: false, items: [mapComponent],
+      bbar: [measureLabel, statusText, "->", coordText, "-", scaleText, "-", "WGS 84"],
+    });
+
+    Ext.create("Ext.container.Viewport", { layout: "border", items: [header, side, center] });
+    setBasemap(basemapCombo.getValue());
+    updateScale();
+    window.__quito = { olMap: olMap, mapComponent: mapComponent, store: poiStore, visibleCount: function () { return visibleIds.size; } };
+  });
+})();
+</script>
+</body>
 </html>

@@ -1,0 +1,22 @@
+{
+  "name": "basic-webmap-comparison",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Comparativa de bibliotecas GIS web (Leaflet, MapLibre GL, OpenLayers, GeoExt) con puntos turísticos de Quito.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "test:unit": "node --test tests/core.test.mjs",
+    "test:e2e": "node --test tests/e2e.test.mjs",
+    "serve": "npx http-server . -p 8000 -c-1"
+  },
+  "devDependencies": {
+    "@geoext/geoext": "7.0.1",
+    "extjs-gpl": "6.2.0",
+    "leaflet": "1.9.4",
+    "leaflet-minimap": "3.6.1",
+    "maplibre-gl": "4.7.1",
+    "ol": "10.4.0",
+    "playwright": "1.56.1"
+  }
+}

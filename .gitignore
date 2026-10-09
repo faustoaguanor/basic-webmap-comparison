@@ -9,3 +9,7 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Dependencias de desarrollo (pruebas)
+node_modules/
+test-results/

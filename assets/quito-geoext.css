@@ -1,0 +1,21 @@
+/* GeoExt: ajustes sobre el tema Crisp de Ext JS para acercarlo a la paleta de Esri. */
+body.gx { overflow: hidden; }
+.gx .header { display: flex; }
+.x-panel-header-default, .x-panel-header-title-default { background: var(--bg-alt); color: var(--text); }
+.x-panel-header-title-default { font: 600 13px var(--font); }
+.x-panel-default, .x-panel-body-default { border-color: var(--border); }
+.x-btn-default-small, .x-btn-default-toolbar-small { border-radius: 2px; }
+.x-btn-pressed .x-btn-inner, .x-btn-pressed { color: #fff; }
+.x-grid-item-selected .x-grid-cell, .x-grid-item-selected { background: var(--brand-soft) !important; }
+.x-grid-cell-inner { padding: 8px 12px; }
+.gx-row { display: flex; gap: 12px; align-items: flex-start; }
+.gx-popup { background: var(--bg); color: var(--text); border-radius: 2px; box-shadow: var(--shadow-pop); padding: 12px 14px; }
+.gx-popup::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -8px; border: 8px solid transparent; border-top-color: var(--bg); }
+.x-form-item-label, .x-fieldset-header-text { font: 600 12px var(--font); }
+.x-form-cb-label .dot { display: inline-block; vertical-align: middle; margin-right: 8px; }
+.x-form-clear-trigger::before { content: "\00d7"; font-size: 16px; line-height: 22px; }
+.x-toolbar-text-default { font: 12px var(--font); }
+.x-form-cb-label .dot { vertical-align: -2px; }
+.ol-zoom { top: 12px; left: 12px; background: none; }
+.ol-zoom button { background: var(--bg); color: var(--text); width: 32px; height: 32px; margin: 0 0 1px; border-radius: 0; box-shadow: var(--shadow); font-size: 18px; }
+.ol-zoom button:hover { background: var(--bg-hover); color: var(--brand); }
