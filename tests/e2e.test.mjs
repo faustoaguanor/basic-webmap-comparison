@@ -41,14 +41,14 @@ const VIEWERS = [
 ];
 
 for (const v of VIEWERS) {
-  test(`${v.name}: carga sin errores, 12 puntos y mapa base Esri con el orden {z}/{y}/{x}`, async () => {
+  test(`${v.name}: carga sin errores, 12 puntos y mapa base Calles (CARTO) con el orden {z}/{x}/{y}`, async () => {
     const { page, context, tiles, errors } = await open(v.file);
     assert.equal(await page.locator("#results .result").count(), 12);
     assert.equal(await page.locator("#badge-points").textContent(), "12");
     assert.equal(await page.locator("[data-bm][aria-checked=true]").count(), 1);
 
     // Zoom 13 sobre Quito: columna x≈2308, fila y≈4101. Si la plantilla estuviera invertida se vería al revés.
-    assert.ok(await waitTiles(tiles, (t) => /World_Street_Map\/MapServer\/tile\/13\/(\d+)\/(\d+)$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 4101) <= 6 && Math.abs(+t.path.split("/").at(-1) - 2308) <= 8), "no se pidieron teselas Esri con fila/columna correctas");
+    assert.ok(await waitTiles(tiles, (t) => t.host === "basemaps.cartocdn.com" && /^\/rastertiles\/voyager\/13\/(\d+)\/(\d+)\.png$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 2308) <= 8 && Math.abs(parseInt(t.path.split("/").at(-1)) - 4101) <= 6), "no se pidieron teselas CARTO con columna/fila correctas");
     assert.ok(!tiles.some((t) => t.host === "tile.openstreetmap.org"), "OSM no debería pedirse si no está seleccionado");
     assert.deepEqual(errors, []);
     await context.close();
@@ -105,7 +105,7 @@ for (const v of VIEWERS) {
     assert.ok(await waitTiles(tiles, (t) => t.host === "tile.openstreetmap.org" && /^\/\d+\/\d+\/\d+\.png$/.test(t.path)));
     assert.equal(await page.getAttribute('[data-bm="osm"]', "aria-checked"), "true");
     await page.click('[data-bm="imagery"]');
-    assert.ok(await waitTiles(tiles, (t) => /World_Imagery\/MapServer\/tile\//.test(t.path)));
+    assert.ok(await waitTiles(tiles, (t) => t.host === "tiles.maps.eox.at" && /s2cloudless-2020_3857\/default\/g\/\d+\/\d+\/\d+\.jpg$/.test(t.path)));
     assert.equal(await page.getAttribute('[data-bm="streets"]', "aria-checked"), "false");
     assert.equal(await page.evaluate(() => localStorage.getItem("quito-gis-basemap")), "imagery");
 
@@ -116,7 +116,7 @@ for (const v of VIEWERS) {
   });
 
   test(`${v.name}: si el mapa base no responde, cae a OpenStreetMap y avisa`, async () => {
-    const { page, context, tiles } = await open(v.file, { failHosts: ["server.arcgisonline.com"] });
+    const { page, context, tiles } = await open(v.file, { failHosts: ["basemaps.cartocdn.com"] });
     await page.locator("#notice:not([hidden])").waitFor({ timeout: 10000 });
     assert.match(await page.locator("#notice").textContent(), /Se cambió a OpenStreetMap/);
     assert.equal(await page.getAttribute('[data-bm="osm"]', "aria-checked"), "true");
@@ -221,7 +221,7 @@ test("GeoExt: Ext JS + GeoExt cargan desde el CDN, 12 filas, búsqueda y popup d
   // Ext JS (456 MB en npm) y GeoExt se sirven desde vendor/: jsDelivr no puede entregarlos.
   assert.deepEqual(external.filter((u) => /extjs|geoext/i.test(u)), [], "Ext JS/GeoExt no deben pedirse a un CDN");
   assert.ok(await page.evaluate(() => !!Ext.ClassManager.get("GeoExt.component.Map") && !!Ext.ClassManager.get("GeoExt.component.Popup")), "GeoExt no cargó");
-  assert.ok(await waitTiles(tiles, (t) => /World_Street_Map\/MapServer\/tile\/13\/(\d+)\/(\d+)$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 4101) <= 6));
+  assert.ok(await waitTiles(tiles, (t) => /^\/rastertiles\/voyager\/13\/(\d+)\/(\d+)\.png$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 2308) <= 8));
 
   await page.fill('input[placeholder^="Buscar"]', "teleferico");
   await page.waitForFunction(() => document.querySelectorAll(".x-grid-item").length === 1);

@@ -37,15 +37,19 @@ Todos son teselas raster XYZ, por lo que las cuatro bibliotecas comparan la mism
 
 | Mapa base | Servicio |
 | --- | --- |
-| Calles, Topográfico, Imágenes, Lienzo gris claro, Lienzo gris oscuro | Esri World Basemaps (`server.arcgisonline.com`) |
+| Calles, Lienzo gris claro, Lienzo gris oscuro | CARTO Voyager / Positron / Dark Matter (`basemaps.cartocdn.com`) |
+| Topográfico | OpenTopoMap (`tile.opentopomap.org`) |
+| Imágenes | Sentinel-2 cloudless 2020 de EOX (`tiles.maps.eox.at`) |
 | OpenStreetMap | `tile.openstreetmap.org` (respaldo) |
 
 Notas:
 
-- La plantilla de Esri es `{z}/{y}/{x}` (fila antes que columna). Una prueba unitaria lo verifica.
+- **Ninguno requiere clave de API.** Antes se usaban las teselas de `server.arcgisonline.com`, pero Esri las retiró: responden con una imagen de "API key requerida" con HTTP 200, por lo que el respaldo automático no saltaba. Una prueba unitaria impide volver a añadir servicios con clave.
+- La plantilla de EOX es `{z}/{y}/{x}` (fila antes que columna); las demás son `{z}/{x}/{y}`. Una prueba unitaria lo verifica.
+- Las imágenes Sentinel-2 tienen 10 m de resolución: por encima del zoom 15 se amplían las teselas de ese nivel.
 - El mapa base es **independiente** del tema claro/oscuro de la interfaz, y la elección se guarda en `localStorage` entre visores.
 - Si el mapa base activo falla (3 errores de teselas sin ninguna carga correcta), el visor cambia solo a OpenStreetMap y lo avisa.
-- Las teselas públicas de Esri requieren atribución (se muestra automáticamente) y están pensadas para uso moderado; para producción use los servicios con clave de ArcGIS Location Platform.
+- Todos estos servicios requieren atribución (se muestra automáticamente) y están pensados para uso moderado (p. ej. CARTO: uso no comercial; OSM y OpenTopoMap: sin tráfico masivo).
 
 ## Visores
 
@@ -115,10 +119,12 @@ npm run serve        # http://localhost:8000  (o: python -m http.server 8000)
 | MapLibre GL JS | 4.7.1 | BSD-3-Clause |
 | OpenLayers | 10.4.0 | BSD-2-Clause |
 | GeoExt / Ext JS GPL | 7.0.1 / 6.2.0 | GPL-3.0 |
-| Teselas Esri World Basemaps | — | Términos de Esri (atribución obligatoria) |
+| Teselas CARTO basemaps | — | CC BY 4.0 (uso no comercial gratuito) |
+| Teselas OpenTopoMap | — | CC-BY-SA |
+| Sentinel-2 cloudless 2020 (EOX) | — | CC BY 4.0 |
 | Datos OpenStreetMap | — | ODbL |
 
-Atribuciones que muestra cada mapa: `Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors` y `© OpenStreetMap contributors`. La interfaz usa iconos SVG propios y la pila tipográfica del sistema (sin Font Awesome ni Google Fonts).
+Atribuciones que muestra cada mapa: `© OpenStreetMap contributors © CARTO`, OpenTopoMap, Sentinel-2 cloudless (EOX) y `© OpenStreetMap contributors`. La interfaz usa iconos SVG propios y la pila tipográfica del sistema (sin Font Awesome ni Google Fonts).
 
 ## Licencia
 

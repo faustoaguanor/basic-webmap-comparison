@@ -37,21 +37,23 @@
   ];
 
   /*
-   * Mapas base. Todos son teselas raster XYZ de servicios públicos, de modo que las
-   * cuatro librerías comparan exactamente la misma fuente. OJO con el orden de Esri:
-   * la plantilla es {z}/{y}/{x} (fila antes que columna), no {z}/{x}/{y}.
+   * Mapas base. Todos son teselas raster XYZ públicas que NO requieren clave de API,
+   * de modo que las cuatro librerías comparan exactamente la misma fuente.
+   * (Las teselas de server.arcgisonline.com se retiraron: Esri ahora devuelve una
+   * imagen "requiere API key" con HTTP 200, así que el respaldo automático no saltaba.)
+   * OJO con EOX: su plantilla es {z}/{y}/{x} (fila antes que columna), no {z}/{x}/{y}.
    * `thumb` = [z, x, y] de una tesela sobre Quito para la miniatura de la galería.
    */
-  var ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
-  var ESRI_ATTR =
-    'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a> &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors';
+  var CARTO = "https://basemaps.cartocdn.com/";
+  var OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  var CARTO_ATTR = OSM_ATTR + ' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
   var BASEMAPS = [
-    { id: "streets", label: "Calles", url: ESRI + "World_Street_Map/MapServer/tile/{z}/{y}/{x}", maxNativeZoom: 19, attribution: ESRI_ATTR, thumb: [12, 1154, 2050] },
-    { id: "topo", label: "Topográfico", url: ESRI + "World_Topo_Map/MapServer/tile/{z}/{y}/{x}", maxNativeZoom: 19, attribution: ESRI_ATTR, thumb: [12, 1154, 2050] },
-    { id: "imagery", label: "Imágenes", url: ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}", maxNativeZoom: 18, attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community', thumb: [12, 1154, 2050] },
-    { id: "gray", label: "Lienzo gris claro", url: ESRI + "Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", maxNativeZoom: 16, attribution: ESRI_ATTR, thumb: [12, 1154, 2050] },
-    { id: "darkgray", label: "Lienzo gris oscuro", url: ESRI + "Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", maxNativeZoom: 16, attribution: ESRI_ATTR, thumb: [12, 1154, 2050] },
-    { id: "osm", label: "OpenStreetMap", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", maxNativeZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors', thumb: [12, 1154, 2050] },
+    { id: "streets", label: "Calles", url: CARTO + "rastertiles/voyager/{z}/{x}/{y}.png", maxNativeZoom: 20, attribution: CARTO_ATTR, thumb: [12, 1154, 2050] },
+    { id: "topo", label: "Topográfico", url: "https://tile.opentopomap.org/{z}/{x}/{y}.png", maxNativeZoom: 17, attribution: 'Map data: ' + OSM_ATTR + ', SRTM &mdash; Map style: &copy; <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA)', thumb: [12, 1154, 2050] },
+    { id: "imagery", label: "Imágenes", url: "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg", maxNativeZoom: 15, attribution: '<a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2020)', thumb: [12, 1154, 2050] },
+    { id: "gray", label: "Lienzo gris claro", url: CARTO + "light_all/{z}/{x}/{y}.png", maxNativeZoom: 20, attribution: CARTO_ATTR, thumb: [12, 1154, 2050] },
+    { id: "darkgray", label: "Lienzo gris oscuro", url: CARTO + "dark_all/{z}/{x}/{y}.png", maxNativeZoom: 20, attribution: CARTO_ATTR, thumb: [12, 1154, 2050] },
+    { id: "osm", label: "OpenStreetMap", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", maxNativeZoom: 19, attribution: OSM_ATTR, thumb: [12, 1154, 2050] },
   ];
   var DEFAULT_BASEMAP = "streets";
   var FALLBACK_BASEMAP = "osm";
