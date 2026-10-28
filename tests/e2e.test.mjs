@@ -41,14 +41,14 @@ const VIEWERS = [
 ];
 
 for (const v of VIEWERS) {
-  test(`${v.name}: carga sin errores, 12 puntos y mapa base Calles (CARTO) con el orden {z}/{x}/{y}`, async () => {
+  test(`${v.name}: carga sin errores, 12 puntos y mapa base Calles (OSM HOT) con el orden {z}/{x}/{y}`, async () => {
     const { page, context, tiles, errors } = await open(v.file);
     assert.equal(await page.locator("#results .result").count(), 12);
     assert.equal(await page.locator("#badge-points").textContent(), "12");
     assert.equal(await page.locator("[data-bm][aria-checked=true]").count(), 1);
 
     // Zoom 13 sobre Quito: columna x≈2308, fila y≈4101. Si la plantilla estuviera invertida se vería al revés.
-    assert.ok(await waitTiles(tiles, (t) => t.host === "basemaps.cartocdn.com" && /^\/rastertiles\/voyager\/13\/(\d+)\/(\d+)\.png$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 2308) <= 8 && Math.abs(parseInt(t.path.split("/").at(-1)) - 4101) <= 6), "no se pidieron teselas CARTO con columna/fila correctas");
+    assert.ok(await waitTiles(tiles, (t) => t.host === "tile.openstreetmap.fr" && /^\/hot\/13\/(\d+)\/(\d+)\.png$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 2308) <= 8 && Math.abs(parseInt(t.path.split("/").at(-1)) - 4101) <= 6), "no se pidieron teselas de Calles con columna/fila correctas");
     assert.ok(!tiles.some((t) => t.host === "tile.openstreetmap.org"), "OSM no debería pedirse si no está seleccionado");
     assert.deepEqual(errors, []);
     await context.close();
@@ -116,7 +116,7 @@ for (const v of VIEWERS) {
   });
 
   test(`${v.name}: si el mapa base no responde, cae a OpenStreetMap y avisa`, async () => {
-    const { page, context, tiles } = await open(v.file, { failHosts: ["basemaps.cartocdn.com"] });
+    const { page, context, tiles } = await open(v.file, { failHosts: ["tile.openstreetmap.fr"] });
     await page.locator("#notice:not([hidden])").waitFor({ timeout: 10000 });
     assert.match(await page.locator("#notice").textContent(), /Se cambió a OpenStreetMap/);
     assert.equal(await page.getAttribute('[data-bm="osm"]', "aria-checked"), "true");
@@ -213,6 +213,28 @@ test("OpenLayers: sólo la capa del mapa base activo está visible y las demás 
   await context.close();
 });
 
+test("Lienzo gris oscuro: teselas OSM con tono oscuro en Leaflet, OpenLayers y MapLibre", async () => {
+  for (const file of ["leaflet-quito.html", "openlayers-quito.html"]) {
+    const { page, context, tiles } = await open(file);
+    await page.click('.rail [data-panel="basemap"]');
+    await page.click('[data-bm="darkgray"]');
+    assert.ok(await waitTiles(tiles, (t) => t.host === "tile.openstreetmap.org"), file);
+    await page.locator("#map .bm-tone-dark").first().waitFor({ state: "attached", timeout: 8000 });
+    assert.match(await page.locator("#map .bm-tone-dark").first().evaluate((el) => getComputedStyle(el).filter), /invert/, file);
+    assert.equal(await page.locator("img.bm-thumb.bm-tone-dark").count(), 1, file);
+    await context.close();
+  }
+  const { page, context } = await open("maplibre-quito.html");
+  await page.click('.rail [data-panel="basemap"]');
+  await page.click('[data-bm="darkgray"]');
+  const paint = await page.evaluate(() => {
+    const m = window.__quito.map;
+    return [m.getPaintProperty("bm-darkgray", "raster-saturation"), m.getPaintProperty("bm-darkgray", "raster-brightness-min"), m.getPaintProperty("bm-darkgray", "raster-brightness-max")];
+  });
+  assert.deepEqual(paint, [-1, 0.83, 0.08]);
+  await context.close();
+});
+
 test("GeoExt: Ext JS + GeoExt cargan desde el CDN, 12 filas, búsqueda y popup de GeoExt", async () => {
   const external = [];
   const { page, context, tiles, errors } = await open("geoext-quito.html", { onRequest: (u) => external.push(u) });
@@ -221,7 +243,7 @@ test("GeoExt: Ext JS + GeoExt cargan desde el CDN, 12 filas, búsqueda y popup d
   // Ext JS (456 MB en npm) y GeoExt se sirven desde vendor/: jsDelivr no puede entregarlos.
   assert.deepEqual(external.filter((u) => /extjs|geoext/i.test(u)), [], "Ext JS/GeoExt no deben pedirse a un CDN");
   assert.ok(await page.evaluate(() => !!Ext.ClassManager.get("GeoExt.component.Map") && !!Ext.ClassManager.get("GeoExt.component.Popup")), "GeoExt no cargó");
-  assert.ok(await waitTiles(tiles, (t) => /^\/rastertiles\/voyager\/13\/(\d+)\/(\d+)\.png$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 2308) <= 8));
+  assert.ok(await waitTiles(tiles, (t) => /^\/hot\/13\/(\d+)\/(\d+)\.png$/.test(t.path) && Math.abs(+t.path.split("/").at(-2) - 2308) <= 8));
 
   await page.fill('input[placeholder^="Buscar"]', "teleferico");
   await page.waitForFunction(() => document.querySelectorAll(".x-grid-item").length === 1);

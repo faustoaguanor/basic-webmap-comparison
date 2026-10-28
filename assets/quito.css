@@ -189,6 +189,9 @@ a { color: var(--brand); }
 .bm { width: 100%; padding: 0; text-align: left; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .bm:hover { border-color: var(--text-2); }
 .bm[aria-checked="true"] { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand); }
+/* Tonos de los lienzos gris claro/oscuro (teselas OSM filtradas; ver TONES en quito-core.js). */
+.bm-tone-light { filter: grayscale(1) contrast(0.88) brightness(1.06); }
+.bm-tone-dark { filter: grayscale(1) invert(0.92) brightness(0.9); }
 .bm-thumb { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--bg-hover); }
 .bm-name { display: block; padding: 6px 8px; font-size: 12px; font-weight: 600; }
 

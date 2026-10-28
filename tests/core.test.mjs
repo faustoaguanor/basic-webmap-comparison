@@ -16,13 +16,22 @@ test("hay 12 puntos con ids únicos, coordenadas dentro del área de Quito y cat
 
 test("ningún mapa base usa servicios que piden clave de API", () => {
   for (const b of C.BASEMAPS) {
-    assert.doesNotMatch(b.url, /arcgisonline\.com|arcgis\.com|stadiamaps|maptiler|thunderforest|mapbox|[?&](api_?key|token|key)=/i, b.id);
+    assert.doesNotMatch(b.url, /arcgisonline\.com|arcgis\.com|cartocdn|stadiamaps|maptiler|thunderforest|mapbox|[?&](api_?key|token|key)=/i, b.id);
   }
 });
 
 test("las plantillas usan el orden correcto de fila/columna", () => {
   assert.match(C.basemapById("imagery").url, /\/\{z\}\/\{y\}\/\{x\}\.jpg$/);
   for (const b of C.BASEMAPS.filter((b) => b.id !== "imagery")) assert.match(b.url, /\/\{z\}\/\{x\}\/\{y\}\.png$/, b.id);
+});
+
+test("los lienzos gris claro/oscuro usan teselas OSM con un tono definido", () => {
+  for (const id of ["gray", "darkgray"]) {
+    const b = C.basemapById(id);
+    assert.equal(b.url, C.basemapById("osm").url, id);
+    assert.ok(C.toneOf(b) && C.toneOf(b).className && C.toneOf(b).paint, id);
+  }
+  assert.equal(C.toneOf(C.basemapById("osm")), null);
 });
 
 test("el mapa base por defecto y el de respaldo existen", () => {
@@ -34,7 +43,7 @@ test("el mapa base por defecto y el de respaldo existen", () => {
 test("tileUrl sustituye z/x/y", () => {
   assert.equal(
     C.tileUrl(C.basemapById("streets"), 12, 1154, 2050),
-    "https://basemaps.cartocdn.com/rastertiles/voyager/12/1154/2050.png"
+    "https://tile.openstreetmap.fr/hot/12/1154/2050.png"
   );
   assert.equal(
     C.tileUrl(C.basemapById("imagery"), 12, 1154, 2050),
