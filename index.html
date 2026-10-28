@@ -62,7 +62,7 @@
 <div class="hero">
   <div class="wrap">
     <h1>Un mismo mapa de Quito,<br />cuatro bibliotecas web</h1>
-    <p>Los mismos 12 puntos turísticos, los mismos mapas base de Esri y la misma interfaz, construidos con Leaflet, MapLibre GL, OpenLayers y GeoExt. Lo único que cambia entre cada visor es el código del mapa.</p>
+    <p>Los mismos 12 puntos turísticos, los mismos mapas base abiertos (sin clave de API) y la misma interfaz, construidos con Leaflet, MapLibre GL, OpenLayers y GeoExt. Lo único que cambia entre cada visor es el código del mapa.</p>
     <div class="facts">
       <div class="fact"><b>4</b><span>Bibliotecas</span></div>
       <div class="fact"><b>12</b><span>Puntos de interés</span></div>
@@ -133,9 +133,10 @@
     <div>
       <h3>Mapas base disponibles</h3>
       <ul>
-        <li><strong>Calles</strong>, <strong>Topográfico</strong>, <strong>Imágenes</strong>, <strong>Lienzo gris claro</strong> y <strong>Lienzo gris oscuro</strong> — Esri World Basemaps.</li>
-        <li><strong>OpenStreetMap</strong> — mapa de respaldo si el servicio de Esri no responde.</li>
-        <li>El orden de la plantilla de Esri es <code>{z}/{y}/{x}</code>.</li>
+        <li><strong>Calles</strong> (CARTO Voyager), <strong>Lienzo gris claro</strong> (CARTO Positron) y <strong>Lienzo gris oscuro</strong> (CARTO Dark Matter).</li>
+        <li><strong>Topográfico</strong> — OpenTopoMap. <strong>Imágenes</strong> — Sentinel-2 cloudless 2020 (EOX).</li>
+        <li><strong>OpenStreetMap</strong> — mapa de respaldo si el mapa base activo no responde.</li>
+        <li>Ninguno requiere clave de API. La plantilla de EOX es <code>{z}/{y}/{x}</code>.</li>
         <li>La elección se recuerda entre visores; el tema claro/oscuro de la interfaz es independiente del mapa base.</li>
       </ul>
     </div>
@@ -166,7 +167,7 @@
     <div>
       <h3>Teselas y diseño</h3>
       <ul>
-        <li>Teselas © <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a> — Esri, HERE, Garmin, Maxar, © contribuyentes de OpenStreetMap.</li>
+        <li>Teselas © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> (CC BY 4.0), © <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA), <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> © EOX IT Services GmbH (CC BY 4.0, datos Copernicus Sentinel 2020).</li>
         <li>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors — ODbL.</li>
         <li>Estética inspirada en <a href="https://developers.arcgis.com/calcite-design-system/" target="_blank" rel="noopener">Calcite Design System</a> y ArcGIS Map Viewer. Proyecto independiente, sin afiliación con Esri.</li>
       </ul>

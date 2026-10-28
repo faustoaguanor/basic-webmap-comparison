@@ -14,11 +14,15 @@ test("hay 12 puntos con ids únicos, coordenadas dentro del área de Quito y cat
   }
 });
 
-test("las plantillas de mapa base de Esri usan {z}/{y}/{x} (fila antes que columna)", () => {
-  const esri = C.BASEMAPS.filter((b) => b.url.includes("arcgisonline.com"));
-  assert.ok(esri.length >= 4);
-  for (const b of esri) assert.match(b.url, /\/tile\/\{z\}\/\{y\}\/\{x\}$/, b.id);
-  assert.match(C.basemapById("osm").url, /\{z\}\/\{x\}\/\{y\}\.png$/);
+test("ningún mapa base usa servicios que piden clave de API", () => {
+  for (const b of C.BASEMAPS) {
+    assert.doesNotMatch(b.url, /arcgisonline\.com|arcgis\.com|stadiamaps|maptiler|thunderforest|mapbox|[?&](api_?key|token|key)=/i, b.id);
+  }
+});
+
+test("las plantillas usan el orden correcto de fila/columna", () => {
+  assert.match(C.basemapById("imagery").url, /\/\{z\}\/\{y\}\/\{x\}\.jpg$/);
+  for (const b of C.BASEMAPS.filter((b) => b.id !== "imagery")) assert.match(b.url, /\/\{z\}\/\{x\}\/\{y\}\.png$/, b.id);
 });
 
 test("el mapa base por defecto y el de respaldo existen", () => {
@@ -30,7 +34,11 @@ test("el mapa base por defecto y el de respaldo existen", () => {
 test("tileUrl sustituye z/x/y", () => {
   assert.equal(
     C.tileUrl(C.basemapById("streets"), 12, 1154, 2050),
-    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/12/2050/1154"
+    "https://basemaps.cartocdn.com/rastertiles/voyager/12/1154/2050.png"
+  );
+  assert.equal(
+    C.tileUrl(C.basemapById("imagery"), 12, 1154, 2050),
+    "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/12/2050/1154.jpg"
   );
 });
 
