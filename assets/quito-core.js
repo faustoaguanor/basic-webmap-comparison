@@ -39,22 +39,37 @@
   /*
    * Mapas base. Todos son teselas raster XYZ públicas que NO requieren clave de API,
    * de modo que las cuatro librerías comparan exactamente la misma fuente.
-   * (Las teselas de server.arcgisonline.com se retiraron: Esri ahora devuelve una
-   * imagen "requiere API key" con HTTP 200, así que el respaldo automático no saltaba.)
+   * (Esri y CARTO ya no sirven teselas sin clave: devuelven una imagen "API KEY REQUIRED"
+   * con HTTP 200, así que ni siquiera el respaldo automático lo detecta.)
+   * Los lienzos gris claro/oscuro son las teselas estándar de OSM pasadas a gris (y la
+   * oscura invertida) en el navegador: `tone` indica el tono, ver TONES más abajo.
    * OJO con EOX: su plantilla es {z}/{y}/{x} (fila antes que columna), no {z}/{x}/{y}.
    * `thumb` = [z, x, y] de una tesela sobre Quito para la miniatura de la galería.
    */
-  var CARTO = "https://basemaps.cartocdn.com/";
+  var OSM_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   var OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
-  var CARTO_ATTR = OSM_ATTR + ' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>';
   var BASEMAPS = [
-    { id: "streets", label: "Calles", url: CARTO + "rastertiles/voyager/{z}/{x}/{y}.png", maxNativeZoom: 20, attribution: CARTO_ATTR, thumb: [12, 1154, 2050] },
+    { id: "streets", label: "Calles", url: "https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", maxNativeZoom: 19, attribution: OSM_ATTR + ' &mdash; estilo <a href="https://www.hotosm.org/" target="_blank" rel="noopener">HOT</a>, alojado por <a href="https://openstreetmap.fr/" target="_blank" rel="noopener">OSM France</a>', thumb: [12, 1154, 2050] },
     { id: "topo", label: "Topográfico", url: "https://tile.opentopomap.org/{z}/{x}/{y}.png", maxNativeZoom: 17, attribution: 'Map data: ' + OSM_ATTR + ', SRTM &mdash; Map style: &copy; <a href="https://opentopomap.org" target="_blank" rel="noopener">OpenTopoMap</a> (CC-BY-SA)', thumb: [12, 1154, 2050] },
     { id: "imagery", label: "Imágenes", url: "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/{z}/{y}/{x}.jpg", maxNativeZoom: 15, attribution: '<a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless</a> by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2020)', thumb: [12, 1154, 2050] },
-    { id: "gray", label: "Lienzo gris claro", url: CARTO + "light_all/{z}/{x}/{y}.png", maxNativeZoom: 20, attribution: CARTO_ATTR, thumb: [12, 1154, 2050] },
-    { id: "darkgray", label: "Lienzo gris oscuro", url: CARTO + "dark_all/{z}/{x}/{y}.png", maxNativeZoom: 20, attribution: CARTO_ATTR, thumb: [12, 1154, 2050] },
-    { id: "osm", label: "OpenStreetMap", url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png", maxNativeZoom: 19, attribution: OSM_ATTR, thumb: [12, 1154, 2050] },
+    { id: "gray", label: "Lienzo gris claro", url: OSM_URL, tone: "light", maxNativeZoom: 19, attribution: OSM_ATTR, thumb: [12, 1154, 2050] },
+    { id: "darkgray", label: "Lienzo gris oscuro", url: OSM_URL, tone: "dark", maxNativeZoom: 19, attribution: OSM_ATTR, thumb: [12, 1154, 2050] },
+    { id: "osm", label: "OpenStreetMap", url: OSM_URL, maxNativeZoom: 19, attribution: OSM_ATTR, thumb: [12, 1154, 2050] },
   ];
+  /*
+   * Tonos aplicados sobre las teselas: `css` para Leaflet/OpenLayers/GeoExt y las miniaturas
+   * (clase .bm-tone-* en quito.css) y `paint` para las propiedades raster de MapLibre.
+   * Ambos dan el mismo resultado: en MapLibre, brightness-min > brightness-max invierte.
+   */
+  var TONES = {
+    light: { className: "bm-tone-light", paint: { "raster-saturation": -1, "raster-brightness-min": 0.12, "raster-brightness-max": 1 } },
+    dark: { className: "bm-tone-dark", paint: { "raster-saturation": -1, "raster-brightness-min": 0.83, "raster-brightness-max": 0.08 } },
+  };
+
+  function toneOf(def) {
+    return (def && def.tone && TONES[def.tone]) || null;
+  }
+
   var DEFAULT_BASEMAP = "streets";
   var FALLBACK_BASEMAP = "osm";
 
@@ -180,6 +195,8 @@
     BASEMAPS: BASEMAPS,
     DEFAULT_BASEMAP: DEFAULT_BASEMAP,
     FALLBACK_BASEMAP: FALLBACK_BASEMAP,
+    TONES: TONES,
+    toneOf: toneOf,
     basemapById: basemapById,
     categoryById: categoryById,
     tileUrl: tileUrl,

@@ -37,19 +37,22 @@ Todos son teselas raster XYZ, por lo que las cuatro bibliotecas comparan la mism
 
 | Mapa base | Servicio |
 | --- | --- |
-| Calles, Lienzo gris claro, Lienzo gris oscuro | CARTO Voyager / Positron / Dark Matter (`basemaps.cartocdn.com`) |
+| Calles | OSM Humanitarian (HOT), alojado por OSM France (`tile.openstreetmap.fr/hot`) |
+| Lienzo gris claro, Lienzo gris oscuro | Teselas estándar de OSM (`tile.openstreetmap.org`) en gris, la oscura invertida, aplicado en el navegador |
 | Topográfico | OpenTopoMap (`tile.opentopomap.org`) |
 | Imágenes | Sentinel-2 cloudless 2020 de EOX (`tiles.maps.eox.at`) |
 | OpenStreetMap | `tile.openstreetmap.org` (respaldo) |
 
 Notas:
 
-- **Ninguno requiere clave de API.** Antes se usaban las teselas de `server.arcgisonline.com`, pero Esri las retiró: responden con una imagen de "API key requerida" con HTTP 200, por lo que el respaldo automático no saltaba. Una prueba unitaria impide volver a añadir servicios con clave.
+- **Ninguno requiere clave de API.** Antes se usaban Esri (`server.arcgisonline.com`) y luego CARTO (`basemaps.cartocdn.com`), pero ambos exigen ahora clave: responden con una imagen de "API key requerida" con HTTP 200, por lo que el respaldo automático no saltaba. Una prueba unitaria impide volver a añadir servicios con clave.
 - La plantilla de EOX es `{z}/{y}/{x}` (fila antes que columna); las demás son `{z}/{x}/{y}`. Una prueba unitaria lo verifica.
 - Las imágenes Sentinel-2 tienen 10 m de resolución: por encima del zoom 15 se amplían las teselas de ese nivel.
 - El mapa base es **independiente** del tema claro/oscuro de la interfaz, y la elección se guarda en `localStorage` entre visores.
 - Si el mapa base activo falla (3 errores de teselas sin ninguna carga correcta), el visor cambia solo a OpenStreetMap y lo avisa.
-- Todos estos servicios requieren atribución (se muestra automáticamente) y están pensados para uso moderado (p. ej. CARTO: uso no comercial; OSM y OpenTopoMap: sin tráfico masivo).
+- Todos estos servicios requieren atribución (se muestra automáticamente) y están pensados para uso moderado (OSM, OSM France y OpenTopoMap: sin tráfico masivo).
+- Los lienzos gris claro/oscuro se generan en el navegador: clases CSS `.bm-tone-light` / `.bm-tone-dark` en Leaflet, OpenLayers y GeoExt, y las propiedades `raster-saturation` / `raster-brightness-*` en MapLibre (definidas en `TONES`, `assets/quito-core.js`).
+- Los assets llevan `?v=AAAAMMDD` en las páginas para evitar la caché de GitHub Pages: súbalo al cambiarlos.
 
 ## Visores
 
@@ -119,18 +122,18 @@ npm run serve        # http://localhost:8000  (o: python -m http.server 8000)
 | MapLibre GL JS | 4.7.1 | BSD-3-Clause |
 | OpenLayers | 10.4.0 | BSD-2-Clause |
 | GeoExt / Ext JS GPL | 7.0.1 / 6.2.0 | GPL-3.0 |
-| Teselas CARTO basemaps | — | CC BY 4.0 (uso no comercial gratuito) |
+| Teselas OSM HOT (OSM France) | — | Datos ODbL; atribución a HOT y OSM France |
 | Teselas OpenTopoMap | — | CC-BY-SA |
 | Sentinel-2 cloudless 2020 (EOX) | — | CC BY 4.0 |
 | Datos OpenStreetMap | — | ODbL |
 
-Atribuciones que muestra cada mapa: `© OpenStreetMap contributors © CARTO`, OpenTopoMap, Sentinel-2 cloudless (EOX) y `© OpenStreetMap contributors`. La interfaz usa iconos SVG propios y la pila tipográfica del sistema (sin Font Awesome ni Google Fonts).
+Atribuciones que muestra cada mapa: `© OpenStreetMap contributors` (con HOT / OSM France en Calles), OpenTopoMap, Sentinel-2 cloudless (EOX) y `© OpenStreetMap contributors`. La interfaz usa iconos SVG propios y la pila tipográfica del sistema (sin Font Awesome ni Google Fonts).
 
 ## Licencia
 
 Este proyecto está licenciado bajo la **Licencia MIT**. Ver el archivo [LICENSE](LICENSE) para más detalles.
 
-Los datos cartográficos de OpenStreetMap están disponibles bajo la licencia [ODbL](https://www.openstreetmap.org/copyright). Los tiles de CARTO están disponibles bajo [CC BY 4.0](https://carto.com/basemaps). Las bibliotecas JavaScript mantienen sus propias licencias (ver tabla arriba).
+Los datos cartográficos de OpenStreetMap están disponibles bajo la licencia [ODbL](https://www.openstreetmap.org/copyright). Las bibliotecas JavaScript mantienen sus propias licencias (ver tabla arriba).
 
 ---
 

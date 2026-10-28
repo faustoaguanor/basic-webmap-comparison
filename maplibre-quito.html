@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="Visor de puntos turísticos de Quito con MapLibre GL: WebGL, vista inclinada 3D, filtros y medición." />
 <title>Quito GIS | MapLibre GL</title>
-<script src="assets/quito-theme.js?v=20261028"></script>
+<script src="assets/quito-theme.js?v=20261028-2"></script>
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-<link rel="stylesheet" href="assets/quito.css?v=20261028" />
+<link rel="stylesheet" href="assets/quito.css?v=20261028-2" />
 </head>
 <body>
 <div id="app"></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="assets/quito-core.js?v=20261028"></script>
-<script src="assets/quito-ui.js?v=20261028"></script>
+<script src="assets/quito-core.js?v=20261028-2"></script>
+<script src="assets/quito-ui.js?v=20261028-2"></script>
 <script>
 (function () {
   "use strict";
@@ -30,7 +30,8 @@
   var layers = [];
   C.BASEMAPS.forEach(function (b) {
     sources["bm-" + b.id] = { type: "raster", tiles: [b.url], tileSize: 256, maxzoom: b.maxNativeZoom, attribution: b.attribution };
-    layers.push({ id: "bm-" + b.id, type: "raster", source: "bm-" + b.id, layout: { visibility: "none" } });
+    var tone = C.toneOf(b);
+    layers.push({ id: "bm-" + b.id, type: "raster", source: "bm-" + b.id, layout: { visibility: "none" }, paint: tone ? tone.paint : {} });
   });
   sources.pois = {
     type: "geojson",

@@ -345,6 +345,7 @@
       Array.prototype.forEach.call(shell.querySelectorAll("[data-thumb]"), function (img) {
         var def = C.basemapById(img.getAttribute("data-thumb"));
         img.addEventListener("error", function () { img.style.visibility = "hidden"; });
+        if (C.toneOf(def)) img.classList.add(C.toneOf(def).className);
         img.src = C.tileUrl(def, def.thumb[0], def.thumb[1], def.thumb[2]);
       });
     }

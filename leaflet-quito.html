@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="Visor de puntos turísticos de Quito con Leaflet: búsqueda, filtros, mapas base sin clave de API y medición." />
 <title>Quito GIS | Leaflet</title>
-<script src="assets/quito-theme.js?v=20261028"></script>
+<script src="assets/quito-theme.js?v=20261028-2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.css" />
-<link rel="stylesheet" href="assets/quito.css?v=20261028" />
+<link rel="stylesheet" href="assets/quito.css?v=20261028-2" />
 </head>
 <body>
 <div id="app"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.js"></script>
-<script src="assets/quito-core.js?v=20261028"></script>
-<script src="assets/quito-ui.js?v=20261028"></script>
+<script src="assets/quito-core.js?v=20261028-2"></script>
+<script src="assets/quito-ui.js?v=20261028-2"></script>
 <script>
 (function () {
   "use strict";
@@ -43,13 +43,14 @@
       maxNativeZoom: def.maxNativeZoom,
       attribution: def.attribution,
       crossOrigin: true,
+      className: C.toneOf(def) ? C.toneOf(def).className : "",
     });
     layer.on("tileload", function () { ui.basemapEvent("load", def.id); });
     layer.on("tileerror", function () { ui.basemapEvent("error", def.id); });
     return (baseLayers[def.id] = layer);
   }
 
-  new L.Control.MiniMap(L.tileLayer(C.basemapById("gray").url, { minZoom: 0, maxZoom: 12 }), {
+  new L.Control.MiniMap(L.tileLayer(C.basemapById("streets").url, { minZoom: 0, maxZoom: 12 }), {
     toggleDisplay: true, minimized: true, position: "bottomright", width: 150, height: 120, zoomLevelOffset: -5,
   }).addTo(map);
 

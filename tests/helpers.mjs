@@ -37,7 +37,7 @@ function solidPng(r, g, b) {
 }
 const TILE = solidPng(214, 224, 232);
 
-const TILE_HOSTS = /^(basemaps\.cartocdn\.com|tile\.opentopomap\.org|tiles\.maps\.eox\.at|tile\.openstreetmap\.org)$/;
+const TILE_HOSTS = /^(tile\.openstreetmap\.fr|tile\.opentopomap\.org|tiles\.maps\.eox\.at|tile\.openstreetmap\.org)$/;
 
 /**
  * Intercepta la red del navegador:
